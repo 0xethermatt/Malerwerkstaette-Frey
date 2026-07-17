@@ -26,11 +26,18 @@
 
   var swatches = Array.prototype.slice.call(document.querySelectorAll("[data-swatch]"));
 
-  // Reihenfolge des automatischen Farbwechsels
+  // Reihenfolge des Farbwechsels
   var ORDER = ["amber", "leaf", "petrol", "coral"];
-  var idx = 0;
+  var N = ORDER.length;
+
+  // Der Farbton läuft weiter — mit der Zeit UND beim Scrollen.
+  var CYCLE_MS = 4500;     // ein Farbschritt pro 4,5 s im Stillstand
+  var SCROLL_PER = 640;    // ... zusätzlich ein Schritt pro 640 px Scrollen
+  var baseIdx = 0;
+  var t0 = Date.now();
+  var scrollBase = 0;
+  var shown = -1;
   var timer = null;
-  var CYCLE_MS = 5000;
 
   function applySwatch(key) {
     var s = SWATCHES[key];
@@ -40,38 +47,40 @@
     swatches.forEach(function (btn) {
       btn.setAttribute("aria-pressed", String(btn.dataset.swatch === key));
     });
-    idx = ORDER.indexOf(key);
   }
 
-  function advance() {
-    idx = (idx + 1) % ORDER.length;
-    applySwatch(ORDER[idx]);
+  function phaseIdx() {
+    var steps = (Date.now() - t0) / CYCLE_MS +
+                (window.pageYOffset - scrollBase) / SCROLL_PER;
+    return ((baseIdx + Math.floor(steps)) % N + N) % N;
+  }
+  function tick() {
+    var i = phaseIdx();
+    if (i !== shown) { shown = i; applySwatch(ORDER[i]); }
   }
 
-  function startCycle() {
-    if (timer) return;
-    timer = window.setInterval(advance, CYCLE_MS);
-  }
-  function stopCycle() {
-    if (timer) { window.clearInterval(timer); timer = null; }
-  }
+  function startCycle() { if (!timer) timer = window.setInterval(tick, 350); }
+  function stopCycle() { if (timer) { window.clearInterval(timer); timer = null; } }
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Automatischer Farbwechsel „mit der Zeit" — das ist die Magie der Seite.
   if (!reduceMotion) {
+    tick();
     startCycle();
-    // Wenn der Tab im Hintergrund ist, pausieren (spart Ressourcen).
+    window.addEventListener("scroll", tick, { passive: true });
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) stopCycle(); else startCycle();
     });
   }
 
-  // Neugierige dürfen trotzdem tippen: Farbe setzen und den Zyklus dort fortsetzen.
+  // Neugierige dürfen trotzdem tippen: Farbe setzen, Lauf ab hier fortsetzen.
   swatches.forEach(function (btn) {
     btn.addEventListener("click", function () {
+      baseIdx = ORDER.indexOf(btn.dataset.swatch);
+      t0 = Date.now();
+      scrollBase = window.pageYOffset;
+      shown = baseIdx;
       applySwatch(btn.dataset.swatch);
-      if (!reduceMotion) { stopCycle(); startCycle(); }  // Rhythmus neu ab dieser Farbe
     });
   });
 

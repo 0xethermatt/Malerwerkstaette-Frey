@@ -477,7 +477,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   gap: clamp(32px, 5vw, 72px);
 }
 .info { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.4rem; }
-.info li { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: start; }
+.info li { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: center; }
 .info__icon {
   width: 42px; height: 42px;
   display: grid; place-items: center;
@@ -642,6 +642,19 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   .ref-dots button[aria-current="true"] {
     background: var(--accent);
     transform: scale(1.3);
+  }
+
+  /* --- Footer: kompakter, weniger Leerraum --- */
+  .site-footer { padding-block: 28px; }
+  .footer-grid { gap: .9rem 1.4rem; }
+  .brand__logo--footer { height: 24px; }
+  .footer-links { gap: .5rem 1rem; font-size: .86rem; }
+  .footer-copy {
+    margin-top: .5rem;
+    padding-top: .8rem;
+    gap: .3rem;
+    font-size: .78rem;
+    flex-direction: column;
   }
 }
 

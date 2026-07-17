@@ -11,6 +11,7 @@ Reines **HTML / CSS / Vanilla JS**, kein Build-Step, keine Abhängigkeiten.
 ├── css/style.css       Styles + Design-Tokens
 ├── js/main.js          Farbwechsel, Menü, Scroll-Reveals, Formular
 └── assets/
+    ├── hero-jungle.svg         Graustufen-Dschungel (Hero-Hintergrund)
     ├── chameleon.webp          volles Chamäleon (Social-/OG-Bild)
     ├── chameleon-branch.webp   Ast-Ebene (bleibt Holz, färbt NICHT um)
     ├── chameleon-animal.webp   Tier-Ebene (bekommt den Farb-Filter)

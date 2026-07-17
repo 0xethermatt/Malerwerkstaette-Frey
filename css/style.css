@@ -456,19 +456,10 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: clamp(32px, 5vw, 72px);
-  align-items: start;
+  align-items: center;
 }
-.about__lead { font-size: clamp(1.05rem, 1rem + .4vw, 1.3rem); }
-.about__text { margin-top: 1.2rem; color: var(--ink-soft); max-width: 44ch; }
-.about__photo {
-  margin-top: 2rem;
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  position: relative;
-  aspect-ratio: 16 / 9;
-}
-.about__photo img { width: 100%; height: 100%; object-fit: cover; }
+.about__lead { font-size: clamp(1.15rem, 1.05rem + .5vw, 1.45rem); }
+.about__text { margin-top: 1.3rem; color: var(--ink-soft); max-width: 46ch; }
 
 .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.1rem; }
 .step {

@@ -76,6 +76,7 @@
             <li><a href="#cookies">Cookies &amp; lokale Speicherung</a></li>
             <li><a href="#tracking">Analyse- und Tracking-Tools</a></li>
             <li><a href="#ssl">SSL-/TLS-Verschlüsselung</a></li>
+            <li><a href="#farbdesigner">Digitaler Farbdesigner (Bildverarbeitung)</a></li>
             <li><a href="#aenderungen">Änderungen dieser Erklärung</a></li>
           </ol>
         </nav>
@@ -230,8 +231,60 @@
           </p>
         </section>
 
+        <section class="legal__section" id="farbdesigner">
+          <h2>9. Digitaler Farbdesigner — Bildverarbeitung</h2>
+
+          <div class="legal__callout">
+            <p><strong>Rechtlicher Hinweis:</strong> Dieser Abschnitt beschreibt den eingesetzten externen Dienst und den Verarbeitungsvorgang so, wie er technisch implementiert ist. Er muss vor der Veröffentlichung des Farbdesigners von einer rechtskundigen Person auf DSGVO-Konformität geprüft werden — insbesondere hinsichtlich Rechtsgrundlage, Auftragsverarbeitungsvertrag und Drittlandübermittlung. Kennzeichnung: <mark class="tbd">TBD</mark></p>
+          </div>
+
+          <h3>Was der Farbdesigner tut</h3>
+          <p>
+            Auf der Seite „Farbdesigner" können Sie ein Foto Ihres Raumes hochladen. Auf Basis dieses Fotos erkennt ein KI-Modell die von Ihnen angeklickte Wandfläche und erzeugt eine Segmentierungsmaske. Das anschließende Einfärben der Wand erfolgt <strong>ausschließlich lokal in Ihrem Browser</strong> — hierfür werden keine weiteren Daten übertragen.
+          </p>
+
+          <h3>Welche Daten übertragen werden</h3>
+          <p>
+            Wenn Sie auf eine Wand klicken, wird Ihr hochgeladenes Foto (in verkleinerter Form, maximal 2.048 Pixel an der längsten Kante, als JPEG oder WebP) zusammen mit den von Ihnen gesetzten Klickpunkten (normalisierte Koordinaten, kein Personenbezug für sich genommen) verschlüsselt an unsere serverseitige API-Route übermittelt. Von dort wird das Bild an den externen Dienstleister <strong>Replicate, Inc.</strong> weitergeleitet, der das KI-Modell betreibt.
+          </p>
+          <ul>
+            <li>Es wird <strong>kein dauerhaftes Speichern</strong> des Fotos durch uns vorgenommen.</li>
+            <li>Das Foto enthält keine Personenidentifikation (es handelt sich um Wand- und Raumaufnahmen). Sollte Ihr Foto dennoch Personen abbilden, empfehlen wir, nur Raumfotos ohne erkennbare Personen hochzuladen.</li>
+            <li>Auf dem Übertragungsweg und in unserer API werden <strong>keine Base64-Bilddaten geloggt</strong>.</li>
+            <li>Die von Replicate zurückgelieferte Maskeninformation (ein Schwarz-Weiß-Bild der erkannten Wandfläche) wird nach Übermittlung an Ihren Browser <strong>nicht gespeichert</strong>.</li>
+          </ul>
+
+          <h3>Externer Dienst: Replicate, Inc.</h3>
+          <dl class="legal__facts">
+            <dt>Anbieter</dt>
+            <dd>Replicate, Inc., <mark class="tbd">Anschrift ergänzen</mark>, Vereinigte Staaten von Amerika</dd>
+            <dt>Zweck</dt>
+            <dd>KI-basierte Bildsegmentierung (Erkennung von Wandflächen im hochgeladenen Foto)</dd>
+            <dt>Übermittelte Daten</dt>
+            <dd>Verkleinertes Raumfoto (max. 2.048 px) sowie normalisierte Koordinaten der angeklickten Punkte</dd>
+            <dt>Speicherdauer beim Anbieter</dt>
+            <dd><mark class="tbd">Laut Replicate-AGB/Datenschutzerklärung — vor Veröffentlichung verifizieren und hier eintragen</mark></dd>
+            <dt>Datenschutzerklärung des Anbieters</dt>
+            <dd><a href="https://replicate.com/privacy" rel="noopener noreferrer" target="_blank">replicate.com/privacy</a></dd>
+          </dl>
+
+          <div class="legal__callout">
+            <p><strong>Drittlandübermittlung (Vereinigte Staaten):</strong> Replicate, Inc. hat seinen Sitz in den USA. Die Übermittlung personenbezogener Daten in die USA ist nur zulässig, wenn eine geeignete Garantie im Sinne von Art. 44 ff. DSGVO vorliegt — zum Beispiel EU-Standardvertragsklauseln (SCCs) gemäß Art. 46 Abs. 2 lit. c DSGVO oder eine Zertifizierung des Anbieters im Rahmen des EU-U.S. Data Privacy Framework (DPF). <mark class="tbd">Vor Veröffentlichung prüfen, welche Grundlage bei Replicate tatsächlich greift, und hier benennen. Ggf. Auftragsverarbeitungsvertrag (AVV) nach Art. 28 DSGVO abschließen.</mark></p>
+          </div>
+
+          <h3>Rechtsgrundlage</h3>
+          <p>
+            Die Verarbeitung des Fotos zum Zweck der Wandsegmentierung erfolgt auf Grundlage Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie durch das aktive Hochladen des Fotos und das Auslösen der KI-Analyse erteilen. Sie können diesen Vorgang jederzeit abbrechen, indem Sie kein Foto hochladen oder die Seite verlassen. <mark class="tbd">Vor Veröffentlichung rechtlich prüfen, ob eine Einwilligungserklärung (Checkbox o. ä.) vor dem Upload erforderlich ist.</mark>
+          </p>
+
+          <h3>Keine dauerhafte Speicherung</h3>
+          <p>
+            Wir speichern hochgeladene Fotos weder auf unseren Servern noch in Datenbanken. Das Foto verbleibt nach Ende der API-Anfrage nicht in unseren Systemen. In Replicate-Systemen anfallende Verarbeitungsrückstände unterliegen den Löschfristen von Replicate (siehe oben).
+          </p>
+        </section>
+
         <section class="legal__section" id="aenderungen">
-          <h2>9. Änderungen dieser Datenschutzerklärung</h2>
+          <h2>10. Änderungen dieser Datenschutzerklärung</h2>
           <p>
             Wir passen diese Datenschutzerklärung an, sobald sich die Rechtslage, die Website selbst oder
             die Art der Datenverarbeitung ändert. Es gilt jeweils die aktuell auf dieser Seite veröffentlichte

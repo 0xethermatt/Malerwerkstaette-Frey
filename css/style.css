@@ -52,7 +52,7 @@
 /* --- Reset / Basis --- */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: var(--bg); }
 
 body {
   margin: 0;
@@ -183,9 +183,15 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   position: sticky;
   top: 0;
   z-index: 50;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
+  /* Erzwingt eine eigene Compositing-Ebene: ohne das "geistert" bei
+     schnellem Scrollen unter iOS/Safari gelegentlich bereits
+     gescrollter Inhalt durch den geblurrten Sticky-Header hindurch
+     (bekannter WebKit-Bug bei backdrop-filter + position:sticky). */
+  transform: translateZ(0);
+  will-change: transform;
 }
 /* Farbspektrum-Balken — wie auf der bisherigen Website */
 .site-header::before {

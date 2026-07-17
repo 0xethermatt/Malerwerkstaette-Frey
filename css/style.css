@@ -121,8 +121,18 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .btn svg { width: 1.15em; height: 1.15em; }
 .btn--primary { background: var(--btn-bg); color: #fff; border-color: var(--btn-bg); }
 .btn--primary:hover { transform: translateY(-2px); }
-.btn--ghost { background: transparent; color: var(--ink); border-color: var(--line); }
-.btn--ghost:hover { border-color: var(--accent); transform: translateY(-2px); }
+.btn--ghost, .btn--ghost:visited {
+  background: var(--paper);
+  color: var(--ink);
+  border: 2px solid var(--accent);
+  transition: transform .18s var(--ease), background .6s var(--ease),
+              border-color .6s var(--ease), color .2s;
+}
+.btn--ghost:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-2px);
+}
 
 /* sichtbarer Keyboard-Focus überall */
 :focus-visible {
@@ -601,7 +611,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
     grid-template-columns: 40px 1fr;
     column-gap: .9rem;
     row-gap: .15rem;
-    align-items: start;
+    align-items: center;
     padding: 14px 16px;
   }
   .card:hover { transform: none; }
@@ -615,6 +625,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
     display: flex;
     gap: 12px;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;

@@ -95,18 +95,43 @@ async function normalizeMaskOutput(output) {
   let maskUrl = null;
 
   if (typeof output === "string" && output.startsWith("http")) {
+    // Einzelne URL
     maskUrl = output;
   } else if (Array.isArray(output)) {
-    // Erstes Element, oder das mit dem höchsten Score nehmen
+    // zsxkib/segment-anything-2: [mask_image_url, ...] oder Array von URLs
     const first = output[0];
-    if (typeof first === "string") maskUrl = first;
-    else if (first && typeof first.url === "string") maskUrl = first.url;
-    else if (first && typeof first.mask === "string") maskUrl = first.mask;
+    if (typeof first === "string" && first.startsWith("http")) {
+      maskUrl = first;
+    } else if (first && typeof first === "object") {
+      // Replicate FileOutput-Objekt
+      if (typeof first.url === "function") {
+        maskUrl = (await first.url()).href || String(await first.url());
+      } else if (typeof first.url === "string") {
+        maskUrl = first.url;
+      } else if (typeof first.mask === "string") {
+        maskUrl = first.mask;
+      }
+    }
   } else if (output && typeof output === "object") {
-    maskUrl = output.mask || output.mask_url || output.output || output.image;
+    // { masks: [...], scores: [...] } — zsxkib-Format
+    if (Array.isArray(output.masks) && output.masks.length > 0) {
+      const m = output.masks[0];
+      maskUrl = typeof m === "string" ? m : (m && m.url ? m.url : null);
+    }
+    // Fallback auf andere Felder
+    if (!maskUrl) {
+      maskUrl = output.mask || output.mask_url || output.output || output.image || null;
+    }
+    // Replicate FileOutput mit .url()-Methode
+    if (!maskUrl && output && typeof output.url === "function") {
+      maskUrl = (await output.url()).href || String(await output.url());
+    }
   }
 
-  if (!maskUrl) throw new Error("Replicate lieferte kein verwertbares Maskenergebnis.");
+  if (!maskUrl) {
+    console.error("[segment] Unbekanntes Output-Format:", JSON.stringify(output).substring(0, 300));
+    throw new Error("Replicate lieferte kein verwertbares Maskenergebnis.");
+  }
 
   // Maske von Replicate herunterladen (temporäre URL, nicht weitergeben)
   const buf = await fetchUrl(maskUrl);
@@ -114,42 +139,64 @@ async function normalizeMaskOutput(output) {
 }
 
 /**
- * Ruft das Replicate-Modell auf und gibt den Masken-Buffer zurück.
+ * Baut die Modell-spezifischen Input-Parameter zusammen.
  *
- * Schema-Annahmen (zu verifizieren unter https://replicate.com/meta/sam-2/api):
- *   input_points: "[[x, y], ...]"  — Pixelkoordinaten im Originalbild
- *   input_labels: "[1, 0, ...]"    — 1 = include, 0 = exclude
+ * meta/sam-2 (offiziell) unterstützt NUR automatische Segmentierung
+ * (points_per_side). Für interaktive Punkt-Eingabe wird
+ * zsxkib/segment-anything-2 verwendet, dessen Schema bekannt ist:
+ *   point_coords: "[[x, y], ...]"
+ *   point_labels: "[1, 0, ...]"
  *
- * Falls das Modell ein anderes Schema verwendet, nur diesen Provider
- * anpassen; der Rest des Codes bleibt unverändert.
+ * Wird REPLICATE_SEGMENTATION_MODEL auf meta/sam-2 gesetzt, wechselt
+ * der Code automatisch auf zsxkib/segment-anything-2 als funktionsfähiges
+ * interaktives Modell. Das Modell kann jederzeit per Env-Var übersteuert
+ * werden.
  */
+function buildModelInput({ imageBlob, pixelCoords, labels, model }) {
+  // zsxkib/segment-anything-2 und kompatible Modelle
+  if (
+    model.includes("zsxkib") ||
+    model.includes("lucataco") ||
+    model.includes("segment-anything-2")
+  ) {
+    return {
+      image: imageBlob,
+      point_coords: JSON.stringify(pixelCoords),
+      point_labels: JSON.stringify(labels),
+      multimask_output: false,
+    };
+  }
+
+  // Generischer Fallback (meta/sam-2-large oder andere Varianten)
+  return {
+    image: imageBlob,
+    input_points: JSON.stringify(pixelCoords),
+    input_labels: JSON.stringify(labels),
+  };
+}
+
 async function replicateProvider({ imageBuffer, mime, points, imageWidth, imageHeight }) {
   const Replicate = require("replicate");
   const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
 
-  const model = process.env.REPLICATE_SEGMENTATION_MODEL || "meta/sam-2";
+  // meta/sam-2 unterstützt kein interaktives Point-Input →
+  // automatisch auf das bewährte interaktive Modell wechseln.
+  let model = process.env.REPLICATE_SEGMENTATION_MODEL || "zsxkib/segment-anything-2";
+  if (model === "meta/sam-2") {
+    model = "zsxkib/segment-anything-2";
+  }
 
-  // Normalisierte Koordinaten → Pixelkoordinaten
   const pixelCoords = points.map((p) => [
     Math.round(p.x * imageWidth),
     Math.round(p.y * imageHeight),
   ]);
   const labels = points.map((p) => (p.label === "include" ? 1 : 0));
 
-  const inputImage = new Blob([imageBuffer], { type: mime });
+  const imageBlob = new Blob([imageBuffer], { type: mime });
+  const modelInput = buildModelInput({ imageBlob, pixelCoords, labels, model });
 
   const output = await Promise.race([
-    replicate.run(model, {
-      input: {
-        image: inputImage,
-        // Versuch 1: SAM2-Standard-Schema für interaktive Segmentierung
-        input_points: JSON.stringify(pixelCoords),
-        input_labels: JSON.stringify(labels),
-        // Versuch 2: alternativer Parametername (falls Schema abweicht)
-        // point_coords: JSON.stringify(pixelCoords),
-        // point_labels: JSON.stringify(labels),
-      },
-    }),
+    replicate.run(model, { input: modelInput }),
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error("TIMEOUT")), MODEL_TIMEOUT_MS)
     ),

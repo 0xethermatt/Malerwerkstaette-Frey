@@ -142,6 +142,13 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
+/* Farbspektrum-Balken — wie auf der bisherigen Website */
+.site-header::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: linear-gradient(90deg, #5AA23C 0%, #167A72 28%, #2E6FA8 56%, #8B4CA0 80%, #C13B7A 100%);
+}
 .nav {
   display: flex;
   align-items: center;
@@ -209,14 +216,14 @@ section[id], [id]#top { scroll-margin-top: 90px; }
    Hero
    ============================================================= */
 .hero { padding-top: clamp(40px, 6vw, 72px); position: relative; overflow: hidden; }
-/* weicher Nebel-Übergang am Hero-Fuß in die helle Seite */
+/* weicher Nebel-Übergang am Hero-Fuß — maskiert den auslaufenden Ast */
 .hero::after {
   content: "";
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 130px;
-  background: linear-gradient(to bottom, transparent, var(--bg));
-  z-index: 0;
+  height: 180px;
+  background: linear-gradient(to bottom, transparent, var(--bg) 75%);
+  z-index: 2;
   pointer-events: none;
 }
 .hero__grid {
@@ -234,32 +241,36 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: url("../assets/hero-jungle.svg") center bottom / cover no-repeat;
+  /* Dschungel nur auf der rechten Hälfte, kleiner skaliert — Text links bleibt frei */
+  background: url("../assets/hero-jungle.svg") right bottom / 58% auto no-repeat;
+  opacity: .88;
 }
-/* Helles Scrim links, damit der Text gut lesbar bleibt */
+/* Starkes Scrim links und oben — Textlesbarkeit garantiert */
 .hero__jungle::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(96deg,
-    var(--bg) 0%,
-    color-mix(in srgb, var(--bg) 62%, transparent) 26%,
-    color-mix(in srgb, var(--bg) 20%, transparent) 46%,
-    transparent 60%);
+  background:
+    linear-gradient(96deg,
+      var(--bg) 0%,
+      color-mix(in srgb, var(--bg) 90%, transparent) 35%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 52%,
+      transparent 68%);
 }
 .hero h1 {
   font-size: clamp(2.5rem, 1.6rem + 4.4vw, 4.6rem);
   margin-top: 1.2rem;
 }
 /* Marken-Slogan im Farbverlauf, wie auf den Fahrzeugen */
-.hero__slogan { line-height: 1.02; }
+.hero__slogan { line-height: 1.05; }
 .hero__slogan-grad {
+  display: block;
   background: linear-gradient(96deg, #5AA23C 0%, #1E8E84 44%, #2E6FA8 88%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-.hero__slogan-frey { color: #C13B7A; }
+.hero__slogan-frey { display: block; color: #C13B7A; }
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
   .hero__slogan-grad { color: #1E8E84; }
 }
@@ -301,11 +312,17 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .swatch[aria-pressed="true"]::after { opacity: 1; transform: scale(1); }
 
 /* Chamäleon — zwei Ebenen: Ast bleibt Holz, nur das Tier färbt um */
+.hero__media {
+  align-self: end;
+  /* Ast läuft in die untere rechte Ecke hinaus */
+  margin-bottom: -110px;
+  margin-right: -60px;
+}
 .cham {
   position: relative;
   width: 100%;
-  max-width: 520px;
-  margin-inline: auto;
+  max-width: 580px;
+  margin-inline-start: auto;
   aspect-ratio: 500 / 637;
 }
 .cham img {

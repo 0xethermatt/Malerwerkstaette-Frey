@@ -26,18 +26,11 @@
 
   var swatches = Array.prototype.slice.call(document.querySelectorAll("[data-swatch]"));
 
-  // Reihenfolge des Farbwechsels
+  // Reihenfolge des automatischen Farbwechsels
   var ORDER = ["amber", "leaf", "petrol", "coral"];
-  var N = ORDER.length;
-
-  // Der Farbton läuft weiter — mit der Zeit UND beim Scrollen.
-  var CYCLE_MS = 4500;     // ein Farbschritt pro 4,5 s im Stillstand
-  var SCROLL_PER = 640;    // ... zusätzlich ein Schritt pro 640 px Scrollen
-  var baseIdx = 0;
-  var t0 = Date.now();
-  var scrollBase = 0;
-  var shown = -1;
+  var idx = 0;
   var timer = null;
+  var CYCLE_MS = 4800;   // ruhiger, automatischer Wechsel — ganz ohne Zutun
 
   function applySwatch(key) {
     var s = SWATCHES[key];
@@ -47,40 +40,28 @@
     swatches.forEach(function (btn) {
       btn.setAttribute("aria-pressed", String(btn.dataset.swatch === key));
     });
+    idx = ORDER.indexOf(key);
   }
+  function advance() { applySwatch(ORDER[(idx + 1) % ORDER.length]); }
 
-  function phaseIdx() {
-    var steps = (Date.now() - t0) / CYCLE_MS +
-                (window.pageYOffset - scrollBase) / SCROLL_PER;
-    return ((baseIdx + Math.floor(steps)) % N + N) % N;
-  }
-  function tick() {
-    var i = phaseIdx();
-    if (i !== shown) { shown = i; applySwatch(ORDER[i]); }
-  }
-
-  function startCycle() { if (!timer) timer = window.setInterval(tick, 350); }
+  function startCycle() { if (!timer) timer = window.setInterval(advance, CYCLE_MS); }
   function stopCycle() { if (timer) { window.clearInterval(timer); timer = null; } }
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Das Chamäleon wechselt von selbst die Farbe — mit weichem Übergang (siehe CSS).
   if (!reduceMotion) {
-    tick();
     startCycle();
-    window.addEventListener("scroll", tick, { passive: true });
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) stopCycle(); else startCycle();
     });
   }
 
-  // Neugierige dürfen trotzdem tippen: Farbe setzen, Lauf ab hier fortsetzen.
+  // Optional: antippen setzt die Farbe und der Lauf geht dort weiter.
   swatches.forEach(function (btn) {
     btn.addEventListener("click", function () {
-      baseIdx = ORDER.indexOf(btn.dataset.swatch);
-      t0 = Date.now();
-      scrollBase = window.pageYOffset;
-      shown = baseIdx;
       applySwatch(btn.dataset.swatch);
+      if (!reduceMotion) { stopCycle(); startCycle(); }
     });
   });
 

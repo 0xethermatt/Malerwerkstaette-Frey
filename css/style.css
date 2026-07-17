@@ -481,6 +481,72 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .step p { color: var(--ink-soft); font-size: .96rem; }
 
 /* =============================================================
+   Geschichte / Tradition
+   ============================================================= */
+.history-grid {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: clamp(32px, 5vw, 72px);
+  align-items: start;
+}
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline__item {
+  position: relative;
+  padding: 0 0 1.8rem 1.9rem;
+  border-left: 2px solid var(--line);
+}
+.timeline__item:last-child { padding-bottom: 0; }
+.timeline__item::before {
+  content: "";
+  position: absolute;
+  left: -8px; top: .2rem;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 3px solid var(--accent);
+  transition: border-color .6s var(--ease);
+}
+.timeline__item--next::before { background: var(--accent); }
+.timeline__item h3 { font-size: 1.24rem; margin-bottom: .3rem; }
+.timeline__item p { color: var(--ink-soft); font-size: .98rem; max-width: 42ch; }
+.timeline__item--next h3 { color: var(--accent); transition: color .6s var(--ease); }
+
+.clippings {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+}
+.clipping { transform: rotate(-1.4deg); }
+.clipping--b { transform: rotate(1.6deg); margin-top: 1.6rem; }
+.clipping .placeholder {
+  position: static;
+  aspect-ratio: 3 / 4;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+/* gealtertes Papier für die historischen Platzhalter */
+.placeholder--paper {
+  color: #6b5f49;
+  background:
+    repeating-linear-gradient(0deg,
+      #f3ecdc 0 3px,
+      #efe6d2 3px 6px);
+}
+.placeholder--paper span {
+  background: color-mix(in srgb, #f6f0e2 85%, transparent);
+  border-color: #d8caa8;
+  color: #6b5f49;
+}
+.clippings__cap {
+  grid-column: 1 / -1;
+  margin-top: .4rem;
+  font-size: .88rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* =============================================================
    Kontakt (dunkles Panel)
    ============================================================= */
 .contact { background: var(--ink); color: #EAF0E7; }
@@ -567,6 +633,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   .cham { max-width: 340px; }
   .about-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
+  .history-grid { grid-template-columns: 1fr; }
 
   /* Dschungel nur im oberen Bereich (hinter dem Chamäleon), unten sauber */
   .hero__jungle {

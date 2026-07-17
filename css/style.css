@@ -435,31 +435,6 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .about__lead { font-size: clamp(1.15rem, 1.05rem + .5vw, 1.45rem); }
 .about__text { margin-top: 1.3rem; color: var(--ink-soft); max-width: 46ch; }
 
-/* Persönliches Zitat — Akzentfarbe am Rand wandert mit dem Farbwechsel mit */
-.about__quote {
-  margin: 1.8rem 0 0;
-  padding-left: 1.4rem;
-  max-width: 42ch;
-  border-left: 3px solid var(--accent);
-  transition: border-color .6s var(--ease);
-}
-.about__quote p {
-  font-size: clamp(1.1rem, 1.02rem + .4vw, 1.3rem);
-  font-weight: 600;
-  line-height: 1.38;
-  color: var(--ink);
-}
-.about__quote cite {
-  display: block;
-  margin-top: .8rem;
-  font-style: normal;
-  font-size: .82rem;
-  font-weight: 600;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
 .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.1rem; }
 .step {
   display: grid;

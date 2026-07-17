@@ -235,26 +235,6 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   z-index: 1;
 }
 
-/* --- Graustufen-Dschungel-Hintergrund --- */
-.hero__jungle {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: url("../assets/hero-jungle.svg") center bottom / cover no-repeat;
-}
-/* Scrim: vollständig opak links (Textbereich), weicher Übergang zur Mitte */
-.hero__jungle::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(96deg,
-    var(--bg) 0%,
-    var(--bg) 36%,
-    color-mix(in srgb, var(--bg) 65%, transparent) 50%,
-    color-mix(in srgb, var(--bg) 18%, transparent) 64%,
-    transparent 78%);
-}
 .hero h1 {
   font-size: clamp(2.5rem, 1.6rem + 4.4vw, 4.6rem);
   margin-top: 1.2rem;
@@ -662,16 +642,6 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   .about-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
   .history-grid { grid-template-columns: 1fr; }
-
-  /* Dschungel nur im oberen Bereich (hinter dem Chamäleon), unten sauber */
-  .hero__jungle {
-    inset: 0 0 auto 0;
-    height: 66%;
-    background-position: center top;
-    -webkit-mask-image: linear-gradient(to bottom, #000 74%, transparent);
-            mask-image: linear-gradient(to bottom, #000 74%, transparent);
-  }
-  .hero__jungle::after { display: none; }
 }
 
 @media (max-width: 780px) {

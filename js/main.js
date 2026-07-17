@@ -172,7 +172,79 @@
   }
 
   /* ---------------------------------------------------------
-     6) Jahreszahl im Footer
+     6) Referenzen-Lightbox — nur für echte Fotos, nicht für
+     Platzhalter-Karten (da gibt es nichts zu vergrößern).
+     --------------------------------------------------------- */
+  var refPhotos = Array.prototype.slice.call(document.querySelectorAll(".ref > img"));
+  if (refPhotos.length) {
+    var lightbox = document.createElement("div");
+    lightbox.className = "lightbox";
+    lightbox.setAttribute("role", "dialog");
+    lightbox.setAttribute("aria-modal", "true");
+    lightbox.setAttribute("aria-hidden", "true");
+    lightbox.innerHTML =
+      '<button type="button" class="lightbox__close" aria-label="Schließen">' +
+        '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+      '</button>' +
+      '<figure class="lightbox__frame">' +
+        '<img class="lightbox__img" src="" alt="">' +
+        '<figcaption class="lightbox__cap"></figcaption>' +
+      '</figure>';
+    document.body.appendChild(lightbox);
+
+    var lbImg = lightbox.querySelector(".lightbox__img");
+    var lbCap = lightbox.querySelector(".lightbox__cap");
+    var lbClose = lightbox.querySelector(".lightbox__close");
+    var lastTrigger = null;
+
+    function openLightbox(img) {
+      lastTrigger = img;
+      lbImg.src = img.src;
+      lbImg.alt = img.alt;
+      var cap = img.closest(".ref").querySelector(".ref__cap");
+      lbCap.textContent = cap ? cap.textContent : "";
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.documentElement.classList.add("lightbox-open");
+      lbClose.focus();
+    }
+    function closeLightbox() {
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.documentElement.classList.remove("lightbox-open");
+      if (lastTrigger) lastTrigger.focus();
+    }
+
+    refPhotos.forEach(function (img) {
+      img.tabIndex = 0;
+      img.setAttribute("role", "button");
+      img.setAttribute("aria-label", "Bild vergrößern: " + img.alt);
+      img.addEventListener("click", function () { openLightbox(img); });
+      img.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openLightbox(img); }
+      });
+
+      var zoomHint = document.createElement("span");
+      zoomHint.className = "ref__zoom";
+      zoomHint.setAttribute("aria-hidden", "true");
+      zoomHint.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/><path d="M10.5 8v5M8 10.5h5"/>' +
+        '</svg>';
+      img.insertAdjacentElement("afterend", zoomHint);
+    });
+
+    lbClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && lightbox.classList.contains("is-open")) closeLightbox();
+    });
+  }
+
+  /* ---------------------------------------------------------
+     7) Jahreszahl im Footer
      --------------------------------------------------------- */
   var year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();

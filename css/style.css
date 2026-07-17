@@ -527,6 +527,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .footer-links a { text-decoration: none; color: var(--ink-soft); }
 .footer-links a:hover { color: var(--accent); }
 .footer-copy { width: 100%; margin-top: 1rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: .4rem 1rem; justify-content: space-between; }
+.footer-copy__break { display: none; }
 
 /* =============================================================
    Scroll-Reveal
@@ -656,6 +657,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
     font-size: .78rem;
     flex-direction: column;
   }
+  .footer-copy__break { display: block; }
 }
 
 @media (max-width: 420px) {

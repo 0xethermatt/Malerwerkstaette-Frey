@@ -241,36 +241,33 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Dschungel nur auf der rechten Hälfte, kleiner skaliert — Text links bleibt frei */
-  background: url("../assets/hero-jungle.svg") right bottom / 58% auto no-repeat;
-  opacity: .88;
+  background: url("../assets/hero-jungle.svg") center bottom / cover no-repeat;
 }
-/* Starkes Scrim links und oben — Textlesbarkeit garantiert */
+/* Scrim: vollständig opak links (Textbereich), weicher Übergang zur Mitte */
 .hero__jungle::after {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(96deg,
-      var(--bg) 0%,
-      color-mix(in srgb, var(--bg) 90%, transparent) 35%,
-      color-mix(in srgb, var(--bg) 55%, transparent) 52%,
-      transparent 68%);
+  background: linear-gradient(96deg,
+    var(--bg) 0%,
+    var(--bg) 36%,
+    color-mix(in srgb, var(--bg) 65%, transparent) 50%,
+    color-mix(in srgb, var(--bg) 18%, transparent) 64%,
+    transparent 78%);
 }
 .hero h1 {
   font-size: clamp(2.5rem, 1.6rem + 4.4vw, 4.6rem);
   margin-top: 1.2rem;
 }
 /* Marken-Slogan im Farbverlauf, wie auf den Fahrzeugen */
-.hero__slogan { line-height: 1.05; }
+.hero__slogan { line-height: 1.06; }
 .hero__slogan-grad {
-  display: block;
   background: linear-gradient(96deg, #5AA23C 0%, #1E8E84 44%, #2E6FA8 88%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-.hero__slogan-frey { display: block; color: #C13B7A; }
+.hero__slogan-frey { color: #C13B7A; }
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
   .hero__slogan-grad { color: #1E8E84; }
 }

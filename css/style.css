@@ -398,74 +398,6 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   border: 1px dashed var(--line);
 }
 
-/* Farbvorschau-Slot: Tint färbt mit dem Akzent um */
-.ref--preview { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
-.ref__tint {
-  position: absolute;
-  inset: 0;
-  background: var(--accent);
-  mix-blend-mode: multiply;
-  opacity: .3;
-  transition: background .6s var(--ease);
-  pointer-events: none;
-}
-.ref__badge {
-  position: absolute;
-  top: .8rem; left: .8rem;
-  z-index: 2;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: #fff;
-  background: var(--accent);
-  padding: .35em .7em;
-  border-radius: 8px;
-  transition: background .6s var(--ease);
-}
-.ref--preview .ref__cap { background: linear-gradient(to top, rgba(20,26,22,.82), transparent); }
-
-/* =============================================================
-   Über uns / Ablauf
-   ============================================================= */
-.about-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(32px, 5vw, 72px);
-  align-items: center;
-}
-.about__lead { font-size: clamp(1.15rem, 1.05rem + .5vw, 1.45rem); }
-.about__text { margin-top: 1.3rem; color: var(--ink-soft); max-width: 46ch; }
-
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.1rem; }
-.step {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1.2rem;
-  align-items: start;
-  padding: 1.4rem 1.5rem;
-  background: color-mix(in srgb, var(--accent) 5%, var(--paper));
-  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
-  border-radius: var(--radius);
-  transition: background .6s var(--ease), border-color .6s var(--ease),
-              transform .25s var(--ease), box-shadow .3s;
-}
-.step:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
-.step__num {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 600;
-  width: 46px; height: 46px;
-  display: grid; place-items: center;
-  border-radius: 50%;
-  color: #fff;
-  background: var(--accent);
-  transition: background .6s var(--ease);
-  flex: none;
-}
-.step h3 { font-size: 1.18rem; margin-bottom: .3rem; }
-.step p { color: var(--ink-soft); font-size: .96rem; }
-
 /* =============================================================
    Geschichte / Tradition
    ============================================================= */
@@ -616,7 +548,6 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   .hero__grid { grid-template-columns: 1fr; }
   .hero__media { order: -1; }
   .cham { max-width: 340px; }
-  .about-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
   .history-grid { grid-template-columns: 1fr; }
 }

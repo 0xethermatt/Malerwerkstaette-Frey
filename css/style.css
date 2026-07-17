@@ -352,7 +352,9 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: clamp(16px, 2vw, 22px);
 }
+.ref-dots { display: none; }
 .ref {
+  margin: 0; /* <figure> hat sonst ein UA-Default-margin von 1em 40px */
   position: relative;
   aspect-ratio: 4 / 3;
   border-radius: var(--radius);
@@ -655,6 +657,61 @@ section[id], [id]#top { scroll-margin-top: 90px; }
     font-weight: 700;
   }
   .nav__links-phone svg { width: 1.1em; height: 1.1em; }
+
+  /* --- Leistungen: kompakte Zeilen statt grosser Karten ---
+     Grid statt Flex: .card__icon, h3 und p sind eigenstaendige
+     Kind-Elemente (keine gemeinsame Text-Wrapper-Div), darum wird
+     hier ueber Grid-Platzierung ein Icon-links/Text-rechts-Layout
+     erzeugt statt drei nebeneinander liegenden Flex-Spalten. */
+  .cards { gap: 10px; }
+  .card {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    column-gap: .9rem;
+    row-gap: .15rem;
+    align-items: start;
+    padding: 14px 16px;
+  }
+  .card:hover { transform: none; }
+  .card__icon { grid-row: 1 / 3; width: 40px; height: 40px; margin-bottom: 0; }
+  .card__icon svg { width: 20px; height: 20px; }
+  .card h3 { grid-column: 2; font-size: 1.02rem; margin-bottom: 0; }
+  .card p { grid-column: 2; font-size: .87rem; }
+
+  /* --- Referenzen: horizontaler Swipe-Slider statt gestapeltem Grid --- */
+  .ref-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: -20px;
+    padding-inline: 20px;
+  }
+  .ref-grid::-webkit-scrollbar { display: none; }
+  .ref-grid > .ref {
+    flex: 0 0 82%;
+    scroll-snap-align: center;
+  }
+  .ref-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .ref-dots button {
+    width: 8px; height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background .25s var(--ease), transform .25s var(--ease);
+  }
+  .ref-dots button[aria-current="true"] {
+    background: var(--accent);
+    transform: scale(1.3);
+  }
 }
 
 @media (max-width: 420px) {

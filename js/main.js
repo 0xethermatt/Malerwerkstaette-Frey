@@ -139,7 +139,40 @@
   }
 
   /* ---------------------------------------------------------
-     5) Jahreszahl im Footer
+     5) Referenzen-Slider (mobil) — Punkt-Navigation
+     Auf Desktop bleibt .ref-grid ein CSS-Grid und ist nicht scrollbar;
+     die Punkte sind dort per CSS ausgeblendet, die Beobachtung hier
+     ist dann einfach wirkungslos.
+     --------------------------------------------------------- */
+  var refGrid = document.querySelector("#referenzen .ref-grid");
+  var refDots = document.querySelector(".ref-dots");
+  if (refGrid && refDots && "IntersectionObserver" in window) {
+    var refSlides = Array.prototype.slice.call(refGrid.children);
+    var dotEls = refSlides.map(function (slide, i) {
+      var dot = document.createElement("button");
+      dot.type = "button";
+      dot.setAttribute("role", "tab");
+      dot.setAttribute("aria-label", "Bild " + (i + 1) + " von " + refSlides.length);
+      dot.setAttribute("aria-current", String(i === 0));
+      dot.addEventListener("click", function () {
+        slide.scrollIntoView({ behavior: reduce ? "auto" : "smooth", inline: "center", block: "nearest" });
+      });
+      refDots.appendChild(dot);
+      return dot;
+    });
+    var refIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!(entry.isIntersecting && entry.intersectionRatio > 0.6)) return;
+        var idx = refSlides.indexOf(entry.target);
+        if (idx === -1) return;
+        dotEls.forEach(function (d, di) { d.setAttribute("aria-current", String(di === idx)); });
+      });
+    }, { root: refGrid, threshold: [0.6] });
+    refSlides.forEach(function (slide) { refIo.observe(slide); });
+  }
+
+  /* ---------------------------------------------------------
+     6) Jahreszahl im Footer
      --------------------------------------------------------- */
   var year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();

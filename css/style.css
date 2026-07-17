@@ -3,6 +3,19 @@
    Reines CSS, kein Build-Step. Tokens direkt vom Chamäleon-Foto.
    ============================================================= */
 
+/* Lokal eingebettet statt von Google geladen — ein direkt von Google
+   Fonts geladener Font überträgt beim Seitenaufruf die IP-Adresse der
+   Besucher an Google, ohne Einwilligung (siehe LG München I,
+   Urt. v. 20.01.2022, Az. 3 O 17493/20). Mit einer selbst gehosteten
+   Datei entfällt diese Übertragung komplett. */
+@font-face {
+  font-family: "Work Sans";
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/work-sans-variable.woff2") format("woff2-variations");
+}
+
 /* --- animierbare Akzentfarbe (interpoliert weich beim Farbwechsel) --- */
 @property --accent {
   syntax: "<color>";
@@ -545,6 +558,76 @@ html {
 }
 .form .btn--primary { justify-self: start; margin-top: .3rem; }
 .form__hint { font-size: .82rem; color: #93A899; }
+
+/* =============================================================
+   Rechtstexte (Impressum / Datenschutzerklärung)
+   ============================================================= */
+.legal { padding-block: clamp(48px, 8vw, 88px); }
+.legal .wrap { max-width: 760px; }
+.legal .eyebrow { margin-bottom: 1rem; }
+.legal h1 { font-size: clamp(2rem, 1.6rem + 1.6vw, 2.7rem); }
+.legal__updated { margin-top: .8rem; color: var(--ink-soft); font-size: .92rem; }
+.legal__intro { margin-top: 1.8rem; max-width: 62ch; color: var(--ink-soft); }
+
+.legal__toc {
+  margin: 2.2rem 0 0;
+  padding: 1.2rem 1.4rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.legal__toc p { font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: .7rem; }
+.legal__toc ol { margin: 0; padding-left: 1.2rem; display: grid; gap: .35rem; }
+.legal__toc a { color: var(--ink); text-decoration: none; }
+.legal__toc a:hover { color: var(--accent); }
+
+.legal__section { margin-top: 3rem; scroll-margin-top: 100px; }
+.legal__section h2 { font-size: 1.35rem; }
+.legal__section h3 { font-size: 1.05rem; margin: 1.6rem 0 .5rem; }
+.legal__section p { color: var(--ink-soft); }
+.legal__section p + p,
+.legal__section h3 + p,
+.legal__section ul + p,
+.legal__section p + ul,
+.legal__section p + ol,
+.legal__section p + dl { margin-top: .9rem; }
+.legal__section ul, .legal__section ol { margin: 0; padding-left: 1.3rem; color: var(--ink-soft); display: grid; gap: .5rem; }
+.legal__section a { color: var(--accent); text-underline-offset: .15em; transition: color .6s var(--ease); }
+.legal__section strong { color: var(--ink); }
+
+.legal__facts {
+  margin-top: 1rem;
+  padding: 1.3rem 1.5rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: grid;
+  gap: .1rem;
+}
+.legal__facts dt { font-weight: 600; color: var(--ink); margin-top: .7rem; }
+.legal__facts dt:first-child { margin-top: 0; }
+.legal__facts dd { margin: .15rem 0 0; color: var(--ink-soft); }
+
+/* Deutlich markierte Platzhalter — muss vor Live-Schaltung ausgefüllt werden */
+.tbd {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent) 65%, transparent);
+  border-radius: 5px;
+  padding: .05em .45em;
+  font-weight: 600;
+  color: var(--ink);
+  font-style: normal;
+}
+
+.legal__callout {
+  margin-top: 1.2rem;
+  padding: 1rem 1.3rem;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--paper));
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.legal__callout p { color: var(--ink); font-size: .95rem; }
+.legal__callout p + p { margin-top: .5rem; }
 
 /* =============================================================
    Footer

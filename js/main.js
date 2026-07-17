@@ -26,6 +26,12 @@
 
   var swatches = Array.prototype.slice.call(document.querySelectorAll("[data-swatch]"));
 
+  // Reihenfolge des automatischen Farbwechsels
+  var ORDER = ["amber", "leaf", "petrol", "coral"];
+  var idx = 0;
+  var timer = null;
+  var CYCLE_MS = 5000;
+
   function applySwatch(key) {
     var s = SWATCHES[key];
     if (!s) return;
@@ -34,11 +40,38 @@
     swatches.forEach(function (btn) {
       btn.setAttribute("aria-pressed", String(btn.dataset.swatch === key));
     });
+    idx = ORDER.indexOf(key);
   }
 
+  function advance() {
+    idx = (idx + 1) % ORDER.length;
+    applySwatch(ORDER[idx]);
+  }
+
+  function startCycle() {
+    if (timer) return;
+    timer = window.setInterval(advance, CYCLE_MS);
+  }
+  function stopCycle() {
+    if (timer) { window.clearInterval(timer); timer = null; }
+  }
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Automatischer Farbwechsel „mit der Zeit" — das ist die Magie der Seite.
+  if (!reduceMotion) {
+    startCycle();
+    // Wenn der Tab im Hintergrund ist, pausieren (spart Ressourcen).
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stopCycle(); else startCycle();
+    });
+  }
+
+  // Neugierige dürfen trotzdem tippen: Farbe setzen und den Zyklus dort fortsetzen.
   swatches.forEach(function (btn) {
     btn.addEventListener("click", function () {
       applySwatch(btn.dataset.swatch);
+      if (!reduceMotion) { stopCycle(); startCycle(); }  // Rhythmus neu ab dieser Farbe
     });
   });
 

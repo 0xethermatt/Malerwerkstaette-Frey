@@ -50,7 +50,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: --accent .6s var(--ease);
+  transition: --accent 1.1s var(--ease);
 }
 
 img { max-width: 100%; display: block; }
@@ -212,13 +212,27 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 /* =============================================================
    Hero
    ============================================================= */
-.hero { padding-top: clamp(40px, 6vw, 72px); }
+.hero { padding-top: clamp(40px, 6vw, 72px); position: relative; overflow: hidden; }
 .hero__grid {
   display: grid;
   grid-template-columns: 1.05fr .95fr;
   gap: clamp(32px, 5vw, 72px);
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
+
+/* --- Flacher Dschungel-Hintergrund --- */
+.hero__jungle { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.leaf { position: absolute; height: auto; display: block; will-change: transform; }
+/* Canopy oben rechts ums Chamäleon, zarte Rahmung in den Ecken */
+.leaf--mona  { width: 250px; top: -78px;  right: -40px; transform: rotate(22deg);   color: #35704A; opacity: .92; }
+.leaf--bana  { width: 150px; top: -24px;  right: 128px; transform: rotate(-42deg);  color: #4C8C57; opacity: .8; }
+.leaf--banc  { width: 116px; top: -40px;  left: 52%;   transform: rotate(14deg);    color: #6FA354; opacity: .5; }
+.leaf--monb  { width: 116px; top: 344px;  right: 54px;  transform: rotate(-14deg);  color: #5B9E5B; opacity: .5; }
+.leaf--banb  { width: 210px; bottom: -86px; right: -34px; transform: rotate(136deg); color: #3E7A4E; opacity: .62; }
+.leaf--ferna { width: 122px; top: -30px;  left: -36px; transform: rotate(24deg);    color: #5B9E5B; opacity: .48; }
+.leaf--fernb { width: 150px; bottom: -36px; left: -28px; transform: rotate(-16deg); color: #4C8C57; opacity: .5; }
 .hero h1 {
   font-size: clamp(2.5rem, 1.6rem + 4.4vw, 4.6rem);
   margin-top: 1.2rem;
@@ -278,7 +292,7 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .cham__animal {
   z-index: 2;
   filter: var(--cham-filter);
-  transition: filter .7s var(--ease);
+  transition: filter 1.1s var(--ease);
 }
 
 /* =============================================================
@@ -523,6 +537,13 @@ section[id], [id]#top { scroll-margin-top: 90px; }
   .cham { max-width: 340px; }
   .about-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
+
+  /* Dschungel schlanker halten, damit Text frei bleibt */
+  .leaf--banb, .leaf--fernb, .leaf--banc { display: none; }
+  .leaf--mona  { width: 150px; top: -40px; right: -30px; }
+  .leaf--bana  { width: 110px; top: -10px; right: auto; left: -24px; transform: rotate(28deg); }
+  .leaf--monb  { width: 92px;  top: 10px;  right: 8px; }
+  .leaf--ferna { width: 96px;  top: -18px; left: 40%; transform: rotate(14deg); opacity: .4; }
 }
 
 @media (max-width: 780px) {

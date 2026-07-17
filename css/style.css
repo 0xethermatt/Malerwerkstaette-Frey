@@ -223,23 +223,24 @@ section[id], [id]#top { scroll-margin-top: 90px; }
 .nav__toggle[aria-expanded="true"] .icon-close { display: block; }
 
 /* =============================================================
-   Scrollbar — Teal-Ton aus dem Farbspektrum im Header
+   Scrollbar — folgt dem automatischen Farbwechsel des Chamäleons
    (echte Verlaeufe auf ::-webkit-scrollbar-thumb werden von Chrome
    nicht zuverlaessig gerendert — kommt als flache Farbe raus, daher
-   hier eine feste, markentreue Einzelfarbe statt eines Verlaufs)
+   hier die lebendige --accent-Farbe statt eines Verlaufs)
    ============================================================= */
 html {
   scrollbar-width: thin;            /* Firefox */
-  scrollbar-color: #167A72 var(--bg);
+  scrollbar-color: var(--accent) var(--bg);
 }
 ::-webkit-scrollbar { width: 12px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb {
-  background: #167A72;
+  background: var(--accent);
   border-radius: 999px;
   border: 3px solid var(--bg);
+  transition: background .6s var(--ease);
 }
-::-webkit-scrollbar-thumb:hover { background: #125F58; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--accent) 80%, black); }
 
 /* =============================================================
    Hero

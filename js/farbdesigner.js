@@ -788,8 +788,11 @@
         return;
       }
 
-      // Undo-Stack
-      state.undoStacks[state.activeWall].push({ maskData: wall.maskData });
+      // Undo-Stack — tiefer Klon, damit spätere In-Place-Mutationen den Snapshot nicht überschreiben
+      var maskSnap = wall.maskData
+        ? new ImageData(new Uint8ClampedArray(wall.maskData.data), wall.maskData.width, wall.maskData.height)
+        : null;
+      state.undoStacks[state.activeWall].push({ maskData: maskSnap, points: wall.points ? wall.points.slice() : [] });
       if (state.undoStacks[state.activeWall].length > 20) state.undoStacks[state.activeWall].shift();
 
       if (state.activeTool === "select") {
@@ -899,7 +902,7 @@
         if (!stack || stack.length === 0) return;
         var prev = stack.pop();
         var wall = state.walls[state.activeWall];
-        wall.points = prev.points;
+        if (prev.points !== undefined) wall.points = prev.points;
         wall.maskData = prev.maskData;
         colorizedCache = null;
         renderCanvas();
@@ -933,6 +936,7 @@
         }
         wall.applied = true;
         wall.color = state.selectedColor;
+        wall.colorName = state.selectedColorName;
         state.hasResult = true;
         colorizedCache = null;
         renderCanvas();
@@ -1071,10 +1075,22 @@
   function updateWallInfo() {
     if (!els.wallInfo) return;
     var wall = state.walls[state.activeWall];
-    var statusText = wall.applied
-      ? ('<strong>' + WALL_NAMES[state.activeWall] + '</strong>: ' + state.selectedColorName + ' (' + state.selectedColor.toUpperCase() + ')')
-      : ('<strong>' + WALL_NAMES[state.activeWall] + '</strong>: Noch keine Farbe ausgewählt');
-    els.wallInfo.innerHTML = statusText;
+    var swatch = document.getElementById("fdWallStatusSwatch");
+    var textEl = els.wallInfo.querySelector(".fd-wall-status__text");
+    if (!textEl) {
+      els.wallInfo.textContent = wall.applied
+        ? (WALL_NAMES[state.activeWall] + ": " + state.selectedColorName)
+        : "Noch keine Farbe ausgewählt.";
+      return;
+    }
+    if (wall.applied) {
+      if (swatch) { swatch.style.background = wall.color; swatch.style.display = "inline-block"; }
+      textEl.innerHTML = "<strong>" + WALL_NAMES[state.activeWall] + ":</strong> " +
+        (wall.colorName || state.selectedColorName) + " <span class='fd-wall-status__hex'>" + (wall.color || state.selectedColor).toUpperCase() + "</span>";
+    } else {
+      if (swatch) swatch.style.display = "none";
+      textEl.innerHTML = "<strong>" + WALL_NAMES[state.activeWall] + ":</strong> Noch keine Farbe ausgewählt.";
+    }
   }
 
   /* ----------------------------------------------------------------

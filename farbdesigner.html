@@ -222,7 +222,7 @@
               <div class="fd-canvas-actions">
                 <button type="button" id="fdConfirmWall" class="btn btn--primary">
                   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Wand übernehmen
+                  Farbe anwenden
                 </button>
                 <button type="button" id="fdNewPhoto" class="btn btn--ghost">
                   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -274,21 +274,12 @@
               </div>
 
               <!-- Wandflächen-Info -->
-              <div class="fd-panel__card">
-                <h3>Ausgewählt</h3>
-                <p class="fd-wall-info" id="fdWallInfo">Noch keine Wand ausgewählt.</p>
-              </div>
-
-              <!-- Beratungs-CTA -->
-              <div class="fd-panel__card" style="background:var(--ink);color:#EAF0E7;border-color:var(--ink)">
-                <h3 style="color:#fff">Gefällt Ihnen der Farbton?</h3>
-                <p style="color:#B6C6BB;font-size:.92rem;margin-bottom:1rem">
-                  Lassen Sie sich vor Ort beraten — kostenlos und unverbindlich.
-                </p>
-                <button type="button" id="fdConsult" class="btn btn--primary" style="width:100%;justify-content:center">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-                  Beratung anfragen
-                </button>
+              <div class="fd-panel__card fd-panel__card--wall-status">
+                <h3>Aktuelle Wand</h3>
+                <div class="fd-wall-status" id="fdWallInfo">
+                  <span class="fd-wall-status__swatch" id="fdWallStatusSwatch" style="display:none"></span>
+                  <span class="fd-wall-status__text">Noch keine Farbe ausgewählt.</span>
+                </div>
               </div>
 
             </div>

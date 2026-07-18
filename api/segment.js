@@ -114,7 +114,7 @@ async function runAutoSegmentation(token, imageUrl) {
     version: SAM2_VERSION,
     input: {
       image: imageUrl,
-      points_per_side: 16,       // 16×16 = 256 prompt points — gut für Wände
+      points_per_side: 32,       // 32×32 = 1024 prompt points — feinere Segmente
       pred_iou_thresh: 0.88,
       stability_score_thresh: 0.95,
       use_m2m: true,

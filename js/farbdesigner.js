@@ -804,8 +804,19 @@
           showError("Kein Segment an dieser Stelle. Bitte auf eine andere Fläche klicken.");
           return;
         }
-        wall.maskData = extracted;
-        cachedMaskImageData = { wall: state.activeWall, data: extracted };
+        // Additiv: vorhandene Maske + neues Segment zusammenführen (ODER)
+        if (wall.maskData) {
+          var wd2 = wall.maskData.data;
+          var ed2 = extracted.data;
+          for (var ai = 0; ai < wd2.length; ai += 4) {
+            var merged = Math.max(wd2[ai], ed2[ai]);
+            wd2[ai] = merged; wd2[ai+1] = merged; wd2[ai+2] = merged; wd2[ai+3] = 255;
+          }
+          cachedMaskImageData = { wall: state.activeWall, data: wall.maskData };
+        } else {
+          wall.maskData = extracted;
+          cachedMaskImageData = { wall: state.activeWall, data: extracted };
+        }
         colorizedCache = null;
         renderCanvas();
       } else {

@@ -42,44 +42,66 @@ module.exports = async function handler(req, res) {
     results.model_info = { error: e.message };
   }
 
-  // Test 2: check meta/sam-2 model info
+  // Test 2: get meta/sam-2 versions list
   try {
     const r = await httpsRequest({
       hostname: "api.replicate.com",
-      path: "/v1/models/meta/sam-2",
+      path: "/v1/models/meta/sam-2/versions",
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
-    results.meta_sam2 = { status: r.status, body: r.raw.substring(0, 600) };
+    results.meta_sam2_versions = { status: r.status, body: r.raw.substring(0, 800) };
   } catch (e) {
-    results.meta_sam2 = { error: e.message };
+    results.meta_sam2_versions = { error: e.message };
   }
 
-  // Test 3: try a minimal prediction with meta/sam-2
+  // Test 3: search for SAM models on Replicate
   try {
-    const inputBody = JSON.stringify({
-      input: {
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/240px-PNG_transparency_demonstration_1.png",
-        task_type: "segment_with_point_prompt",
-        input_points: "[[[120,120]]]",
-        input_labels: "[[1]]",
-        multimask_output: false,
-      },
-    });
     const r = await httpsRequest({
       hostname: "api.replicate.com",
-      path: "/v1/models/meta/sam-2/predictions",
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(inputBody),
-        Prefer: "wait=5",
-      },
-    }, inputBody);
-    results.meta_sam2_prediction = { status: r.status, body: r.raw.substring(0, 800) };
+      path: "/v1/models?query=segment+anything",
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    results.search_sam = { status: r.status, body: r.raw.substring(0, 1200) };
   } catch (e) {
-    results.meta_sam2_prediction = { error: e.message };
+    results.search_sam = { error: e.message };
+  }
+
+  // Test 4: try meta/sam-2 with version-based prediction (automatic mode)
+  // First need version from Test 2 — try with a known version hash if available
+  if (results.meta_sam2_versions && results.meta_sam2_versions.status === 200) {
+    try {
+      const versionsBody = JSON.parse(
+        results.meta_sam2_versions.body.replace(/\n$/, "")
+      );
+      const latestVersion = versionsBody.results && versionsBody.results[0] && versionsBody.results[0].id;
+      results.latest_version_id = latestVersion || "not_found";
+
+      if (latestVersion) {
+        const inputBody = JSON.stringify({
+          version: latestVersion,
+          input: {
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/240px-PNG_transparency_demonstration_1.png",
+            points_per_side: 16,
+          },
+        });
+        const r = await httpsRequest({
+          hostname: "api.replicate.com",
+          path: "/v1/predictions",
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(inputBody),
+            Prefer: "wait=5",
+          },
+        }, inputBody);
+        results.version_prediction = { status: r.status, body: r.raw.substring(0, 800) };
+      }
+    } catch (e) {
+      results.version_prediction = { error: e.message };
+    }
   }
 
   return res.status(200).json(results);

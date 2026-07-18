@@ -348,6 +348,7 @@ module.exports = async function handler(req, res) {
     }
     return res.status(502).json({
       error: "Die Bilderkennung ist momentan nicht erreichbar. Sie können es erneut versuchen oder die Auswahl manuell bearbeiten.",
+      _debug: msg.substring(0, 500),
     });
   }
 };

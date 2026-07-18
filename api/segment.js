@@ -1,12 +1,8 @@
 /* =============================================================
    Vercel Serverless Function: /api/segment
-   Verwendet die Replicate HTTP API direkt (kein SDK) für maximale
-   Kompatibilität in serverlosen Node.js-Umgebungen.
-
-   Ablauf:
-   1. Bild per Multipart an https://api.replicate.com/v1/files hochladen
-   2. Erhaltene CDN-URL an zsxkib/segment-anything-2 übergeben
-   3. Maske als Data-URL zurückgeben
+   Runs meta/sam-2 automatic segmentation on an uploaded image.
+   Returns a combined_mask where each detected segment has a unique color.
+   The client then extracts wall segments locally by reading pixel colors.
    ============================================================= */
 
 "use strict";
@@ -16,17 +12,16 @@ const { checkRateLimit, getClientIp } = require("./_rateLimit");
 
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"];
 const MAX_DATA_URL_BYTES = 5 * 1024 * 1024;
-const MAX_POINTS = 20;
-const PREDICTION_TIMEOUT_MS = 40000;
+const PREDICTION_TIMEOUT_MS = 55000;
 
-// meta/sam-2 unterstützt Punkt-Prompts via task_type
-const INTERACTIVE_MODEL = "meta/sam-2";
+// meta/sam-2 version — automatic segmentation, returns combined_mask
+const SAM2_VERSION = "fe97b453a6455861e3bac769b441ca1f1086110da7466dbb65cf1eecfd60dc83";
 
 /* ----------------------------------------------------------------
    Eingabe-Validierung
 ---------------------------------------------------------------- */
 function validateBody(body) {
-  const { imageDataUrl, points } = body;
+  const { imageDataUrl } = body;
 
   if (typeof imageDataUrl !== "string")
     throw { status: 400, message: "imageDataUrl fehlt." };
@@ -40,19 +35,7 @@ function validateBody(body) {
   if (!ALLOWED_MIME.includes(mime))
     throw { status: 415, message: `Dateityp nicht erlaubt: ${mime}` };
 
-  if (!Array.isArray(points) || points.length === 0)
-    throw { status: 400, message: "Mindestens ein Punkt erforderlich." };
-  if (points.length > MAX_POINTS)
-    throw { status: 400, message: `Maximal ${MAX_POINTS} Punkte erlaubt.` };
-  for (const p of points) {
-    if (
-      typeof p.x !== "number" || typeof p.y !== "number" ||
-      p.x < 0 || p.x > 1 || p.y < 0 || p.y > 1 ||
-      (p.label !== "include" && p.label !== "exclude")
-    ) throw { status: 400, message: "Ungültiger Punkt." };
-  }
-
-  return { imageDataUrl, points, mime };
+  return { imageDataUrl, mime };
 }
 
 /* ----------------------------------------------------------------
@@ -81,7 +64,6 @@ function httpsRequest(options, body) {
 
 /* ----------------------------------------------------------------
    Bild zu Replicate Files API hochladen → CDN-URL erhalten
-   POST https://api.replicate.com/v1/files  (multipart/form-data)
 ---------------------------------------------------------------- */
 async function uploadImageToReplicate(imageBuffer, mime, token) {
   const boundary = "frey" + Date.now().toString(36);
@@ -110,7 +92,7 @@ async function uploadImageToReplicate(imageBuffer, mime, token) {
     bodyBuf
   );
 
-  console.log(`[segment] File upload status: ${res.status}, body: ${res.raw.substring(0, 300)}`);
+  console.log(`[segment] File upload status: ${res.status}`);
 
   if (res.status !== 201 || !res.body || !res.body.urls) {
     throw new Error(
@@ -118,34 +100,31 @@ async function uploadImageToReplicate(imageBuffer, mime, token) {
     );
   }
 
-  // Replicate gibt { urls: { get: "https://..." } } zurück
   const cdnUrl = res.body.urls.get;
-  console.log(`[segment] File uploaded, CDN URL: ${cdnUrl}`);
+  console.log(`[segment] Uploaded to: ${cdnUrl}`);
   return cdnUrl;
 }
 
 /* ----------------------------------------------------------------
-   Prediction starten und auf Ergebnis warten
-   Wir nutzen "Prefer: wait=55" — Replicate antwortet synchron.
+   Auto-Segmentierung mit meta/sam-2
+   Gibt combined_mask zurück: farbiges Bild, jedes Segment = eigene Farbe
 ---------------------------------------------------------------- */
-async function runPrediction(token, imageUrl, pixelCoords, labels) {
-  // meta/sam-2 supports point prompts via task_type
-  // input_points format: [[[x, y], [x2, y2]]] (batch of point lists)
-  // input_labels format: [[1, 0]] (1=include, 0=exclude)
+async function runAutoSegmentation(token, imageUrl) {
   const inputBody = JSON.stringify({
+    version: SAM2_VERSION,
     input: {
       image: imageUrl,
-      task_type: "segment_with_point_prompt",
-      input_points: JSON.stringify([pixelCoords]),
-      input_labels: JSON.stringify([labels]),
-      multimask_output: false,
+      points_per_side: 16,       // 16×16 = 256 prompt points — gut für Wände
+      pred_iou_thresh: 0.88,
+      stability_score_thresh: 0.95,
+      use_m2m: true,
     },
   });
 
   const res = await httpsRequest(
     {
       hostname: "api.replicate.com",
-      path: `/v1/models/${INTERACTIVE_MODEL}/predictions`,
+      path: "/v1/predictions",
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -157,33 +136,27 @@ async function runPrediction(token, imageUrl, pixelCoords, labels) {
     inputBody
   );
 
-  console.log(`[segment] Replicate response status: ${res.status}`);
-  console.log(`[segment] Replicate response body: ${res.raw.substring(0, 500)}`);
+  console.log(`[segment] Prediction status: ${res.status}`);
+  console.log(`[segment] Prediction body: ${res.raw.substring(0, 600)}`);
 
   if (!res.body) {
-    throw new Error(`Replicate antwortete mit Status ${res.status}: ${res.raw.substring(0, 300)}`);
+    throw new Error(`Replicate status ${res.status}: ${res.raw.substring(0, 300)}`);
   }
 
   const pred = res.body;
-
-  // Wenn "wait" greift, ist status direkt "succeeded" oder "failed"
   if (pred.status === "succeeded") return pred.output;
   if (pred.status === "failed") {
-    throw new Error(`Replicate-Modell fehlgeschlagen: ${pred.error || "kein Detail"}`);
+    throw new Error(`Modell fehlgeschlagen: ${pred.error || "kein Detail"}`);
   }
+  if (pred.id) return pollPrediction(token, pred.id);
 
-  // Fallback: manuell pollen (falls Prefer: wait nicht unterstützt)
-  if (pred.id) {
-    return pollPrediction(token, pred.id);
-  }
-
-  throw new Error(`Unerwarteter Replicate-Status: ${pred.status || "unbekannt"}, Body: ${res.raw.substring(0, 200)}`);
+  throw new Error(`Unerwarteter Status: ${pred.status || "unbekannt"}, Body: ${res.raw.substring(0, 200)}`);
 }
 
 async function pollPrediction(token, predictionId) {
   const deadline = Date.now() + PREDICTION_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 2000));
 
     const res = await httpsRequest({
       hostname: "api.replicate.com",
@@ -196,39 +169,38 @@ async function pollPrediction(token, predictionId) {
     if (!pred) continue;
     if (pred.status === "succeeded") return pred.output;
     if (pred.status === "failed") {
-      throw new Error(`Replicate-Modell fehlgeschlagen: ${pred.error || "kein Detail"}`);
+      throw new Error(`Modell fehlgeschlagen: ${pred.error || "kein Detail"}`);
     }
   }
   throw new Error("TIMEOUT");
 }
 
 /* ----------------------------------------------------------------
-   Ausgabe normalisieren → Masken-Buffer
-   zsxkib/segment-anything-2 gibt ein Array zurück:
-   [ mask_image_url, iou_scores_url, low_res_logits_url ]
+   Output → combined_mask Buffer
+   meta/sam-2 gibt { combined_mask: URL, ... } zurück
 ---------------------------------------------------------------- */
-async function normalizeMaskOutput(output) {
+async function downloadCombinedMask(output) {
   let maskUrl = null;
 
-  if (typeof output === "string" && output.startsWith("http")) {
-    maskUrl = output;
-  } else if (Array.isArray(output)) {
-    // Erstes Element = beste Maske
-    const first = output[0];
-    if (typeof first === "string" && first.startsWith("http")) {
-      maskUrl = first;
-    } else if (first && typeof first === "object") {
-      maskUrl = first.url || first.mask || null;
+  if (output && typeof output === "object" && !Array.isArray(output)) {
+    maskUrl = output.combined_mask || output.mask || output.image || null;
+    // FileOutput objects have a .url property
+    if (!maskUrl && output.combined_mask && typeof output.combined_mask === "object") {
+      maskUrl = output.combined_mask.url || null;
     }
-  } else if (output && typeof output === "object") {
-    maskUrl = output.masks?.[0] || output.mask || output.image || null;
+  } else if (typeof output === "string") {
+    maskUrl = output;
+  } else if (Array.isArray(output) && output.length > 0) {
+    maskUrl = typeof output[0] === "string" ? output[0] : (output[0] && output[0].url);
   }
 
   if (!maskUrl) {
     const preview = JSON.stringify(output).substring(0, 400);
     console.error("[segment] Unbekanntes Output-Format:", preview);
-    throw new Error("Replicate lieferte kein verwertbares Maskenergebnis.");
+    throw new Error("Replicate lieferte kein combined_mask. Output: " + preview);
   }
+
+  console.log(`[segment] Downloading combined_mask: ${maskUrl}`);
 
   const buf = await new Promise((resolve, reject) => {
     https.get(maskUrl, (res) => {
@@ -239,16 +211,11 @@ async function normalizeMaskOutput(output) {
     }).on("error", reject);
   });
 
-  return buf;
-}
-
-/* ----------------------------------------------------------------
-   Maske validieren
----------------------------------------------------------------- */
-function validateMaskBuffer(buf) {
   if (!buf || buf.length < 500) {
-    throw { status: 422, message: "Die erkannte Maske ist leer oder zu klein." };
+    throw new Error("Combined-Mask-Bild ist leer oder zu klein.");
   }
+
+  return buf;
 }
 
 /* ----------------------------------------------------------------
@@ -302,55 +269,38 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // Bild dekodieren
   const b64 = validated.imageDataUrl.replace(/^data:[^;]+;base64,/, "");
   const imageBuffer = Buffer.from(b64, "base64");
-
   const imageWidth  = Number(body.imageWidth)  || 1024;
   const imageHeight = Number(body.imageHeight) || 768;
 
-  const pixelCoords = validated.points.map((p) => [
-    Math.round(p.x * imageWidth),
-    Math.round(p.y * imageHeight),
-  ]);
-  const labels = validated.points.map((p) => (p.label === "include" ? 1 : 0));
-
   try {
-    // 1. Bild hochladen
     const imageUrl = await uploadImageToReplicate(imageBuffer, validated.mime, token);
 
-    // 2. Segmentierung ausführen
     const predTimeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error("TIMEOUT")), PREDICTION_TIMEOUT_MS)
     );
     const output = await Promise.race([
-      runPrediction(token, imageUrl, pixelCoords, labels),
+      runAutoSegmentation(token, imageUrl),
       predTimeout,
     ]);
 
-    // 3. Maske normalisieren
-    const maskBuffer = await normalizeMaskOutput(output);
-    validateMaskBuffer(maskBuffer);
+    const maskBuffer = await downloadCombinedMask(output);
+    const combinedMaskDataUrl = "data:image/png;base64," + maskBuffer.toString("base64");
 
-    // Masken-Größenprüfung (zu leer / zu voll) geschieht im Browser nach Canvas-Decode
-    const maskDataUrl = "data:image/png;base64," + maskBuffer.toString("base64");
-
-    return res.status(200).json({ maskDataUrl, width: imageWidth, height: imageHeight });
+    return res.status(200).json({ combinedMaskDataUrl, width: imageWidth, height: imageHeight });
 
   } catch (err) {
     const msg = String(err.message || "");
     console.error("[segment] Fehler:", msg.substring(0, 800));
 
-    if (err.status === 422) {
-      return res.status(422).json({ error: err.message });
-    }
     if (msg === "TIMEOUT") {
       return res.status(504).json({
-        error: "Die Bilderkennung hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+        error: "Die Bildanalyse hat zu lange gedauert. Bitte versuchen Sie es erneut.",
       });
     }
     return res.status(502).json({
-      error: "Die Bilderkennung ist momentan nicht erreichbar. Sie können es erneut versuchen oder die Auswahl manuell bearbeiten.",
+      error: "Die Bilderkennung ist momentan nicht erreichbar. Sie können die Auswahl manuell mit dem Pinsel bearbeiten.",
       _debug: msg.substring(0, 500),
     });
   }

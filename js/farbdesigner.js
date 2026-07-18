@@ -69,7 +69,9 @@
     // Undo-Stack pro Wand
     undoStacks: [[]],
 
-    // Verarbeitung
+    // Auto-Segmentierung (einmalig nach Upload)
+    combinedMaskImageData: null,   // ImageData des meta/sam-2 combined_mask
+    segmentationReady: false,      // true sobald combined_mask geladen
     isSegmenting: false,
     hasResult: false,
 
@@ -521,22 +523,25 @@
   ---------------------------------------------------------------- */
   var pendingSegmentId = 0;
 
-  function runSegmentation() {
+  /* ----------------------------------------------------------------
+     Auto-Segmentierung — läuft einmalig nach dem Upload
+     meta/sam-2 liefert ein combined_mask-Bild: jedes Segment hat eine
+     eigene Farbe. Beim Klick lesen wir die Pixelfarbe aus und erzeugen
+     lokal eine binäre Maske — kein weiterer API-Aufruf nötig.
+  ---------------------------------------------------------------- */
+  function runAutoSegmentation() {
     if (state.isSegmenting) return;
-    var activeWall = state.walls[state.activeWall];
-    if (activeWall.points.length === 0) return;
-
     state.isSegmenting = true;
-    var myId = ++pendingSegmentId;
+    state.segmentationReady = false;
+    state.combinedMaskImageData = null;
 
-    showProgress("Wand wird erkannt …", "Das kann einige Sekunden dauern.");
+    showProgress("Bild wird analysiert …", "KI erkennt alle Wandflächen. Das dauert ca. 15–30 Sekunden.");
     hideError();
 
     var payload = JSON.stringify({
       imageDataUrl: state.preparedDataUrl,
       imageWidth: state.preparedWidth,
       imageHeight: state.preparedHeight,
-      points: activeWall.points,
     });
 
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -549,52 +554,106 @@
 
     var timeoutId = setTimeout(function () {
       if (controller) controller.abort();
-    }, 45000);
+    }, 60000);
 
     fetch("/api/segment", fetchOpts)
       .then(function (res) {
         clearTimeout(timeoutId);
-        if (myId !== pendingSegmentId) return null; // veraltete Antwort
         return res.json().then(function (data) {
           return { ok: res.ok, status: res.status, data: data };
         });
       })
       .then(function (result) {
-        if (!result || myId !== pendingSegmentId) return;
         state.isSegmenting = false;
         hideProgress();
 
         if (!result.ok) {
-          showError(result.data.error || "Unbekannter Fehler bei der Bilderkennung.");
+          showError((result.data && result.data.error) || "Unbekannter Fehler bei der Bildanalyse.");
           return;
         }
 
-        normalizeMask(
-          result.data.maskDataUrl,
-          result.data.width,
-          result.data.height,
-          function (maskData) {
-            var wall = state.walls[state.activeWall];
-            wall.maskData = maskData;
-            cachedMaskImageData = { wall: state.activeWall, data: maskData };
-            colorizedCache = null;
-            renderCanvas();
-          },
-          function (errMsg) { showError(errMsg); }
-        );
+        // combined_mask als ImageData laden
+        loadCombinedMask(result.data.combinedMaskDataUrl, result.data.width, result.data.height);
       })
       .catch(function (err) {
         clearTimeout(timeoutId);
-        if (myId !== pendingSegmentId) return;
         state.isSegmenting = false;
         hideProgress();
         if (err.name === "AbortError") {
-          showError("Die Verbindung wurde unterbrochen. Bitte versuchen Sie es erneut.");
+          showError("Die Verbindung wurde unterbrochen. Sie können Wände manuell mit dem Pinsel auswählen.");
         } else {
-          showError("Die Bilderkennung ist momentan nicht erreichbar. Sie können es erneut versuchen oder die Auswahl manuell bearbeiten.");
+          showError("Die KI-Erkennung ist momentan nicht verfügbar. Sie können Wände manuell mit dem Pinsel auswählen.");
         }
       });
   }
+
+  function loadCombinedMask(combinedMaskDataUrl, width, height) {
+    var img = new Image();
+    img.onload = function () {
+      var oc = document.createElement("canvas");
+      oc.width = width || img.naturalWidth;
+      oc.height = height || img.naturalHeight;
+      var ctx = oc.getContext("2d");
+      ctx.drawImage(img, 0, 0, oc.width, oc.height);
+      state.combinedMaskImageData = ctx.getImageData(0, 0, oc.width, oc.height);
+      state.segmentationReady = true;
+      hideError();
+      // Hinweistext aktualisieren
+      var hint = document.getElementById("fd-hint");
+      if (hint) hint.textContent = "Tippen/Klicken Sie auf eine Wand, um sie auszuwählen.";
+    };
+    img.onerror = function () {
+      showError("Combined-Mask konnte nicht geladen werden. Bitte Pinsel verwenden.");
+    };
+    img.src = combinedMaskDataUrl;
+  }
+
+  /* ----------------------------------------------------------------
+     Segment aus combined_mask extrahieren — rein lokal, kein API-Aufruf
+     Liest die Pixelfarbe am Klickpunkt und erstellt eine binäre Maske
+     für alle Pixel desselben Segments.
+  ---------------------------------------------------------------- */
+  function extractSegmentAtPoint(normX, normY) {
+    if (!state.combinedMaskImageData) return null;
+    var cm = state.combinedMaskImageData;
+    var px = Math.round(normX * cm.width);
+    var py = Math.round(normY * cm.height);
+    px = Math.max(0, Math.min(cm.width  - 1, px));
+    py = Math.max(0, Math.min(cm.height - 1, py));
+
+    var idx4 = (py * cm.width + px) * 4;
+    var tr = cm.data[idx4];
+    var tg = cm.data[idx4 + 1];
+    var tb = cm.data[idx4 + 2];
+    var ta = cm.data[idx4 + 3];
+
+    // Schwarze / transparente Pixel = kein Segment
+    if (ta < 10 || (tr < 10 && tg < 10 && tb < 10)) return null;
+
+    // Binäre Maske erzeugen: alle Pixel mit gleicher Farbe (±Toleranz)
+    var TOL = 12;
+    var maskCanvas = document.createElement("canvas");
+    maskCanvas.width = cm.width;
+    maskCanvas.height = cm.height;
+    var mCtx = maskCanvas.getContext("2d");
+    var maskId = mCtx.createImageData(cm.width, cm.height);
+    var md = maskId.data;
+    var cd = cm.data;
+
+    for (var i = 0; i < cd.length; i += 4) {
+      var match = Math.abs(cd[i]   - tr) <= TOL &&
+                  Math.abs(cd[i+1] - tg) <= TOL &&
+                  Math.abs(cd[i+2] - tb) <= TOL &&
+                  cd[i+3] > 10;
+      var v = match ? 255 : 0;
+      md[i] = v; md[i+1] = v; md[i+2] = v; md[i+3] = 255;
+    }
+
+    return maskId;
+  }
+
+  /* Nicht mehr verwendet — bleibt als Fallback für ältere Tests */
+  function runSegmentation() { runAutoSegmentation(); }
 
   /* ----------------------------------------------------------------
      Pinsel / Radierer — manuelle Maskenbearbeitung
@@ -667,6 +726,8 @@
         state.activeWall = 0;
         state.undoStacks = [[]];
         state.hasResult = false;
+        state.combinedMaskImageData = null;
+        state.segmentationReady = false;
         colorizedCache = null;
         cachedOriginalPixels = null;
         cachedMaskImageData = null;
@@ -678,6 +739,9 @@
         renderWallChips();
         updateWallInfo();
         updateColorDisplay();
+
+        // Sofort Auto-Segmentierung starten
+        runAutoSegmentation();
       },
       function (errMsg) {
         hideProgress();
@@ -718,17 +782,45 @@
     var coords = getNormalizedCoords(event);
 
     if (state.activeTool === "select" || state.activeTool === "exclude") {
-      var label = state.activeTool === "select" ? "include" : "exclude";
       var wall = state.walls[state.activeWall];
 
+      if (!state.segmentationReady) {
+        if (state.isSegmenting) {
+          showError("Bitte warten — Bild wird noch analysiert …");
+        } else {
+          showError("Analyse nicht verfügbar. Bitte verwenden Sie den Pinsel zum manuellen Auswählen.");
+        }
+        return;
+      }
+
       // Undo-Stack
-      var undoSnapshot = wall.points.slice();
-      state.undoStacks[state.activeWall].push({ points: undoSnapshot, maskData: wall.maskData });
+      state.undoStacks[state.activeWall].push({ maskData: wall.maskData });
       if (state.undoStacks[state.activeWall].length > 20) state.undoStacks[state.activeWall].shift();
 
-      wall.points.push({ x: coords.x, y: coords.y, label: label });
-      renderOverlay();
-      runSegmentation();
+      if (state.activeTool === "select") {
+        // Segment lokal aus combined_mask extrahieren
+        var extracted = extractSegmentAtPoint(coords.x, coords.y);
+        if (!extracted) {
+          showError("Kein Segment an dieser Stelle. Bitte auf eine andere Fläche klicken.");
+          return;
+        }
+        wall.maskData = extracted;
+        cachedMaskImageData = { wall: state.activeWall, data: extracted };
+        colorizedCache = null;
+        renderCanvas();
+      } else {
+        // exclude: Segment von der bestehenden Maske abziehen
+        var toExclude = extractSegmentAtPoint(coords.x, coords.y);
+        if (toExclude && wall.maskData) {
+          var wd = wall.maskData.data;
+          var ed = toExclude.data;
+          for (var ei = 0; ei < wd.length; ei += 4) {
+            if (ed[ei] > 128) { wd[ei] = 0; wd[ei+1] = 0; wd[ei+2] = 0; }
+          }
+          colorizedCache = null;
+          renderCanvas();
+        }
+      }
       return;
     }
 

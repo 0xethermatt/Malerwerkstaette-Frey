@@ -52,10 +52,14 @@
 /* --- Reset / Basis --- */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; background: var(--bg); }
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
 
 body {
   margin: 0;
+  overflow-x: hidden;
   /* Feines Papierkorn direkt als zweite Hintergrundebene (statt eines
      eigenen position:fixed-Layers mit mix-blend-mode + hohem z-index):
      letzteres geriet auf iOS/Safari ins Gehege mit dem backdrop-filter

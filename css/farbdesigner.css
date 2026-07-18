@@ -1,0 +1,774 @@
+/* =============================================================
+   Farbdesigner — Ergänzende Styles
+   Setzt auf css/style.css auf; überschreibt nichts an der
+   bestehenden Website.
+   ============================================================= */
+
+/* ---------------------------------------------------------
+   Hero — Farbdesigner-spezifisch
+   --------------------------------------------------------- */
+.fd-hero {
+  padding-top: clamp(40px, 6vw, 72px);
+  padding-bottom: clamp(32px, 5vw, 56px);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.032 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat,
+    var(--bg);
+}
+.fd-hero__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+.fd-hero h1 {
+  font-size: clamp(2.1rem, 1.4rem + 3vw, 3.4rem);
+  margin-top: .5rem;
+}
+.fd-hero__lead {
+  margin-top: 1.2rem;
+  font-size: clamp(1rem, .95rem + .25vw, 1.18rem);
+  color: var(--ink-soft);
+  max-width: 44ch;
+}
+.fd-hero__steps {
+  margin-top: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+.fd-hero__step {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  font-size: .98rem;
+  color: var(--ink-soft);
+}
+.fd-hero__step-num {
+  flex: none;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  transition: background .6s var(--ease);
+}
+.fd-hero__visual {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.fd-hero__visual-inner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
+.fd-hero__palette-demo {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.fd-hero__swatch-demo {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.6);
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+.fd-hero__visual-label {
+  font-size: .88rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------
+   Datenschutz-Hinweis vor dem Upload
+   --------------------------------------------------------- */
+.fd-privacy-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  padding: 1rem 1.2rem;
+  background: color-mix(in srgb, var(--teal) 8%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--teal) 25%, var(--line));
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  color: var(--ink-soft);
+  margin-bottom: 1.5rem;
+}
+.fd-privacy-notice svg {
+  flex: none;
+  width: 20px; height: 20px;
+  color: var(--teal);
+  margin-top: .1em;
+}
+
+/* ---------------------------------------------------------
+   Upload-Bereich
+   --------------------------------------------------------- */
+.fd-upload {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  padding: clamp(32px, 6vw, 56px) clamp(20px, 5vw, 40px);
+  text-align: center;
+  background: var(--paper);
+  cursor: pointer;
+  transition: border-color .25s var(--ease), background .25s;
+  position: relative;
+}
+.fd-upload:hover,
+.fd-upload.is-dragging {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--paper));
+}
+.fd-upload input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.fd-upload__icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 1.2rem;
+  color: var(--accent);
+  transition: color .6s var(--ease);
+}
+.fd-upload__icon svg { width: 100%; height: 100%; }
+.fd-upload h2 {
+  font-size: clamp(1.2rem, 1rem + .8vw, 1.5rem);
+  margin-bottom: .5rem;
+}
+.fd-upload__sub {
+  color: var(--ink-soft);
+  font-size: .95rem;
+  margin-bottom: 1.4rem;
+}
+.fd-upload__formats {
+  font-size: .82rem;
+  color: var(--ink-soft);
+  margin-top: 1rem;
+}
+
+/* ---------------------------------------------------------
+   Fortschrittsanzeige
+   --------------------------------------------------------- */
+.fd-progress {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  text-align: center;
+}
+.fd-progress.is-active { display: flex; }
+.fd-progress__spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: fd-spin .9s linear infinite;
+  transition: border-top-color .6s var(--ease);
+}
+@keyframes fd-spin { to { transform: rotate(360deg); } }
+.fd-progress__label {
+  font-weight: 600;
+  color: var(--ink);
+}
+.fd-progress__sub { font-size: .88rem; color: var(--ink-soft); }
+
+/* ---------------------------------------------------------
+   Editor-Layout
+   --------------------------------------------------------- */
+.fd-editor {
+  display: none;
+}
+.fd-editor.is-active { display: block; }
+.fd-editor__layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: clamp(16px, 3vw, 32px);
+  align-items: start;
+}
+
+/* Canvas-Bereich */
+.fd-canvas-wrap {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #111;
+  box-shadow: var(--shadow);
+  /* Verhindert Scrollen/Zoomen beim Setzen von Punkten auf Touch-Geräten */
+  touch-action: none;
+}
+.fd-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+}
+#fdCanvas { cursor: crosshair; }
+#fdOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fd-canvas-wrap.mode-brush #fdCanvas { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='rgba(100,180,100,.5)' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") 8 8, crosshair; }
+.fd-canvas-wrap.mode-eraser #fdCanvas { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='rgba(200,80,80,.5)' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") 8 8, crosshair; }
+
+/* Toolbar */
+.fd-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .7rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin-bottom: .75rem;
+}
+.fd-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  padding: .45em .8em;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.fd-tool svg { width: 1.1em; height: 1.1em; flex: none; }
+.fd-tool:hover { background: color-mix(in srgb, var(--accent) 10%, var(--paper)); color: var(--ink); }
+.fd-tool.is-active {
+  background: color-mix(in srgb, var(--accent) 15%, var(--paper));
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--ink);
+}
+.fd-tool--danger:hover { background: color-mix(in srgb, var(--coral) 10%, var(--paper)); color: var(--coral); }
+.fd-tool--separator { width: 1px; background: var(--line); padding: 0; margin: 2px 2px; }
+
+/* Brush-Größen-Slider */
+.fd-brush-size {
+  display: none;
+  align-items: center;
+  gap: .6rem;
+  padding: .4rem .8rem;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  width: 100%;
+}
+.fd-brush-size.is-visible { display: flex; }
+.fd-brush-size input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+/* Wandflächen-Chips */
+.fd-walls {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-bottom: .75rem;
+  padding: .6rem .7rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.fd-wall-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  padding: .35em .75em;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--bg);
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: border-color .2s, background .2s, color .2s;
+}
+.fd-wall-chip .fd-wall-chip__dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.fd-wall-chip.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+  color: var(--ink);
+}
+.fd-wall-chip__add {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.fd-wall-chip:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* Aktions-Buttons unter dem Canvas */
+.fd-canvas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+
+/* ---------------------------------------------------------
+   Rechte Spalte — Farbauswahl & Info
+   --------------------------------------------------------- */
+.fd-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.fd-panel__card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.3rem;
+}
+.fd-panel__card h3 {
+  font-size: 1rem;
+  margin-bottom: .9rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Farbpalette */
+.fd-palette {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+.fd-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform .15s var(--ease), box-shadow .15s;
+  position: relative;
+}
+.fd-swatch:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.fd-swatch.is-selected {
+  border-color: var(--ink);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
+}
+.fd-swatch:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Freie Farbauswahl */
+.fd-color-custom {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--line);
+}
+.fd-color-picker-wrap {
+  position: relative;
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--line);
+  flex: none;
+}
+.fd-color-picker-wrap input[type="color"] {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.fd-color-info { flex: 1; min-width: 0; }
+.fd-color-name { font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fd-color-hex { font-size: .8rem; color: var(--ink-soft); font-family: monospace; }
+
+/* Intensitätsregler */
+.fd-intensity {
+  display: grid;
+  gap: .5rem;
+}
+.fd-intensity__label {
+  display: flex;
+  justify-content: space-between;
+  font-size: .88rem;
+}
+.fd-intensity__label span:last-child { color: var(--ink-soft); }
+input[type="range"].fd-range {
+  width: 100%;
+  accent-color: var(--accent);
+  height: 4px;
+  border-radius: 2px;
+  transition: accent-color .6s var(--ease);
+}
+
+/* Wandflächen-Status */
+.fd-wall-info {
+  font-size: .88rem;
+  color: var(--ink-soft);
+}
+.fd-wall-info strong { color: var(--ink); }
+
+.fd-wall-status {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .88rem;
+  color: var(--ink-soft);
+}
+.fd-wall-status__swatch {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+}
+.fd-wall-status__hex {
+  font-family: monospace;
+  font-size: .8em;
+  opacity: .6;
+  margin-left: .3em;
+}
+
+/* ---------------------------------------------------------
+   Vorher-Nachher-Slider
+   --------------------------------------------------------- */
+.fd-compare-wrap {
+  display: none;
+  margin-top: 1.5rem;
+}
+.fd-compare-wrap.is-active { display: block; }
+.fd-compare {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  user-select: none;
+  touch-action: none;
+}
+.fd-compare canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+#fdCompareAfter {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 50% 0 0);
+  transition: none;
+}
+.fd-compare__line {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 3px;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,.5);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.fd-compare__handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.35);
+  display: grid;
+  place-items: center;
+  cursor: ew-resize;
+  pointer-events: none;
+}
+.fd-compare__handle svg { width: 22px; height: 22px; color: var(--ink-soft); }
+.fd-compare__labels {
+  position: absolute;
+  bottom: 1rem;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 1rem;
+  pointer-events: none;
+}
+.fd-compare__label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(15,20,16,.6);
+  backdrop-filter: blur(4px);
+  padding: .25em .6em;
+  border-radius: 999px;
+}
+
+/* ---------------------------------------------------------
+   Download & CTA
+   --------------------------------------------------------- */
+.fd-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-top: 1.5rem;
+}
+
+.fd-disclaimer {
+  margin-top: 1rem;
+  padding: .85rem 1rem;
+  background: color-mix(in srgb, var(--amber) 8%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--amber) 30%, var(--line));
+  border-radius: var(--radius-sm);
+  font-size: .85rem;
+  color: var(--ink-soft);
+  display: flex;
+  gap: .7rem;
+  align-items: flex-start;
+}
+.fd-disclaimer svg { flex: none; width: 18px; height: 18px; color: var(--amber); margin-top: .1em; }
+
+/* ---------------------------------------------------------
+   Fehleranzeige
+   --------------------------------------------------------- */
+.fd-error {
+  display: none;
+  padding: .9rem 1.1rem;
+  background: color-mix(in srgb, var(--coral) 10%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--coral) 40%, var(--line));
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: .92rem;
+  gap: .7rem;
+  align-items: flex-start;
+  margin-top: .75rem;
+}
+.fd-error.is-visible { display: flex; }
+.fd-error svg { flex: none; width: 18px; height: 18px; color: var(--coral); margin-top: .1em; }
+.fd-error__msg { flex: 1; }
+
+/* ---------------------------------------------------------
+   Beratungs-CTA
+   --------------------------------------------------------- */
+.fd-consult {
+  background: var(--ink);
+  color: #EAF0E7;
+  padding-block: clamp(48px, 7vw, 80px);
+}
+.fd-consult .eyebrow { color: #A9BBAE; }
+.fd-consult h2 { color: #fff; font-size: clamp(1.7rem, 1.3rem + 2vw, 2.6rem); }
+.fd-consult p { color: #B6C6BB; margin-top: .8rem; max-width: 44ch; }
+.fd-consult__grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
+}
+
+/* ---------------------------------------------------------
+   Feature-Section auf der Startseite (ersetzt fd-cta-card)
+   --------------------------------------------------------- */
+.fd-feature-section {
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--teal) 8%, var(--paper)) 0%,
+    color-mix(in srgb, var(--leaf) 6%, var(--paper)) 100%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: clamp(56px, 9vw, 96px) 0;
+  overflow: hidden;
+}
+.fd-feature-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 80px);
+  align-items: center;
+}
+.fd-feature-text { display: flex; flex-direction: column; gap: 1.25rem; }
+.fd-feature-text h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.2; }
+.fd-feature-text p { color: var(--ink-soft); font-size: 1rem; max-width: 44ch; line-height: 1.7; }
+
+.fd-feature-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.fd-feature-bullets li {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--ink);
+  font-size: .95rem;
+}
+.fd-feature-bullets li svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--teal);
+}
+.fd-feature-btn {
+  align-self: flex-start;
+  margin-top: .5rem;
+  font-size: 1rem;
+  padding: .8em 1.6em;
+  gap: .55em;
+}
+.fd-feature-btn svg { width: 18px; height: 18px; }
+
+/* Mockup */
+.fd-feature-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+}
+.fd-feature-hint {
+  font-size: .8rem;
+  color: var(--ink-muted, var(--ink-soft));
+  opacity: .7;
+}
+.fd-feature-mockup {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.12);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.fd-mockup-bar {
+  height: 28px;
+  background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+}
+.fd-mockup-bar span {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 18%, var(--paper));
+}
+.fd-mockup-body { padding: 16px; }
+
+/* Stylised room illustration */
+.fd-mockup-room {
+  aspect-ratio: 4/3;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e8e0d8;
+}
+.fd-mockup-wall {
+  position: absolute;
+}
+.fd-mockup-wall--back {
+  inset: 0 18% 28% 18%;
+  background: var(--fd-wall-color, #7C9E8A);
+  transition: background .6s ease;
+}
+.fd-mockup-wall--left {
+  left: 0; top: 0; bottom: 28%; width: 20%;
+  background: color-mix(in srgb, var(--fd-wall-color, #7C9E8A) 70%, #000);
+  transition: background .6s ease;
+}
+.fd-mockup-wall--floor {
+  left: 0; right: 0; bottom: 0; height: 28%;
+  background: #c4b8aa;
+}
+.fd-mockup-swatch-row {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.fd-sw {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--c);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+.fd-sw--active {
+  border-color: var(--ink);
+  transform: scale(1.2);
+}
+
+/* Auto-cycle the wall color demo */
+@keyframes fd-demo-cycle {
+  0%,18%   { --fd-wall-color: #7C9E8A; }
+  20%,38%  { --fd-wall-color: #C8A882; }
+  40%,58%  { --fd-wall-color: #4A6FA5; }
+  60%,78%  { --fd-wall-color: #B05252; }
+  80%,98%  { --fd-wall-color: #8B7355; }
+  100%     { --fd-wall-color: #7C9E8A; }
+}
+.fd-mockup-room {
+  animation: fd-demo-cycle 12s ease-in-out infinite;
+  @property --fd-wall-color { syntax: "<color>"; inherits: true; initial-value: #7C9E8A; }
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 760px) {
+  .fd-feature-wrap { grid-template-columns: 1fr; }
+  .fd-feature-visual { display: none; }
+  .fd-feature-text p { max-width: none; }
+  .fd-feature-btn { align-self: stretch; justify-content: center; }
+}
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+@media (max-width: 960px) {
+  .fd-hero__grid { grid-template-columns: 1fr; }
+  .fd-hero__visual { display: none; }
+  .fd-editor__layout { grid-template-columns: 1fr; }
+  .fd-panel { flex-direction: row; flex-wrap: wrap; }
+  .fd-panel__card { flex: 1 1 280px; }
+  .fd-consult__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .fd-palette { grid-template-columns: repeat(4, 1fr); }
+  .fd-toolbar { gap: .3rem; }
+  .fd-tool { font-size: .8rem; padding: .4em .6em; }
+}
+@media (max-width: 420px) {
+  .fd-canvas-actions .btn { flex: 1 1 100%; }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .fd-progress__spinner { animation: none; border-top-color: var(--accent); }
+}

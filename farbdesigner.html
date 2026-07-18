@@ -105,6 +105,14 @@
     <!-- ================================================================
          Hauptwerkzeug
          ================================================================ -->
+    <!-- Mobile-Hinweis (nur auf schmalen Screens) -->
+    <div id="fdMobileBanner" style="display:none;background:var(--paper);border:1px solid var(--accent);border-radius:10px;margin:12px 16px 0;padding:12px 16px;font-size:.85rem;color:var(--ink);line-height:1.45" role="note">
+      <strong>Tipp:</strong> Der Farbdesigner funktioniert auch auf dem Handy — für die präzise Wandauswahl empfehlen wir aber einen Desktop-Browser. Sie können das Foto jederzeit am PC hochladen.
+    </div>
+    <script>
+      if (window.innerWidth < 640) document.getElementById("fdMobileBanner").style.display = "block";
+    </script>
+
     <section id="farbdesigner-tool" style="padding-top: clamp(24px, 4vw, 48px);">
       <div class="wrap">
 

@@ -55,19 +55,20 @@ module.exports = async function handler(req, res) {
     results.meta_sam2 = { error: e.message };
   }
 
-  // Test 3: try a minimal prediction with zsxkib model
+  // Test 3: try a minimal prediction with meta/sam-2
   try {
     const inputBody = JSON.stringify({
       input: {
         image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/240px-PNG_transparency_demonstration_1.png",
-        point_coords: "[[120,120]]",
-        point_labels: "[1]",
+        task_type: "segment_with_point_prompt",
+        input_points: "[[[120,120]]]",
+        input_labels: "[[1]]",
         multimask_output: false,
       },
     });
     const r = await httpsRequest({
       hostname: "api.replicate.com",
-      path: "/v1/models/zsxkib/segment-anything-2/predictions",
+      path: "/v1/models/meta/sam-2/predictions",
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -76,9 +77,9 @@ module.exports = async function handler(req, res) {
         Prefer: "wait=5",
       },
     }, inputBody);
-    results.zsxkib_prediction = { status: r.status, body: r.raw.substring(0, 800) };
+    results.meta_sam2_prediction = { status: r.status, body: r.raw.substring(0, 800) };
   } catch (e) {
-    results.zsxkib_prediction = { error: e.message };
+    results.meta_sam2_prediction = { error: e.message };
   }
 
   return res.status(200).json(results);

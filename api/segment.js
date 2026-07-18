@@ -19,8 +19,8 @@ const MAX_DATA_URL_BYTES = 5 * 1024 * 1024;
 const MAX_POINTS = 20;
 const PREDICTION_TIMEOUT_MS = 40000;
 
-// Modell mit bekanntem interaktivem Point-Input-Schema
-const INTERACTIVE_MODEL = "zsxkib/segment-anything-2";
+// meta/sam-2 unterstützt Punkt-Prompts via task_type
+const INTERACTIVE_MODEL = "meta/sam-2";
 
 /* ----------------------------------------------------------------
    Eingabe-Validierung
@@ -129,12 +129,15 @@ async function uploadImageToReplicate(imageBuffer, mime, token) {
    Wir nutzen "Prefer: wait=55" — Replicate antwortet synchron.
 ---------------------------------------------------------------- */
 async function runPrediction(token, imageUrl, pixelCoords, labels) {
-  // Community models use /v1/models/{owner}/{name}/predictions endpoint
+  // meta/sam-2 supports point prompts via task_type
+  // input_points format: [[[x, y], [x2, y2]]] (batch of point lists)
+  // input_labels format: [[1, 0]] (1=include, 0=exclude)
   const inputBody = JSON.stringify({
     input: {
       image: imageUrl,
-      point_coords: JSON.stringify(pixelCoords),
-      point_labels: JSON.stringify(labels),
+      task_type: "segment_with_point_prompt",
+      input_points: JSON.stringify([pixelCoords]),
+      input_labels: JSON.stringify([labels]),
       multimask_output: false,
     },
   });

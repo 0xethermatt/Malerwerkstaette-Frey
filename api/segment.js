@@ -110,6 +110,8 @@ async function uploadImageToReplicate(imageBuffer, mime, token) {
     bodyBuf
   );
 
+  console.log(`[segment] File upload status: ${res.status}, body: ${res.raw.substring(0, 300)}`);
+
   if (res.status !== 201 || !res.body || !res.body.urls) {
     throw new Error(
       `Replicate File-Upload fehlgeschlagen (${res.status}): ${res.raw.substring(0, 300)}`
@@ -117,7 +119,9 @@ async function uploadImageToReplicate(imageBuffer, mime, token) {
   }
 
   // Replicate gibt { urls: { get: "https://..." } } zurück
-  return res.body.urls.get;
+  const cdnUrl = res.body.urls.get;
+  console.log(`[segment] File uploaded, CDN URL: ${cdnUrl}`);
+  return cdnUrl;
 }
 
 /* ----------------------------------------------------------------
@@ -125,10 +129,8 @@ async function uploadImageToReplicate(imageBuffer, mime, token) {
    Wir nutzen "Prefer: wait=55" — Replicate antwortet synchron.
 ---------------------------------------------------------------- */
 async function runPrediction(token, imageUrl, pixelCoords, labels) {
+  // Community models use /v1/models/{owner}/{name}/predictions endpoint
   const inputBody = JSON.stringify({
-    // zsxkib/segment-anything-2 Schema:
-    // https://replicate.com/zsxkib/segment-anything-2/api
-    model: INTERACTIVE_MODEL,
     input: {
       image: imageUrl,
       point_coords: JSON.stringify(pixelCoords),
@@ -140,7 +142,7 @@ async function runPrediction(token, imageUrl, pixelCoords, labels) {
   const res = await httpsRequest(
     {
       hostname: "api.replicate.com",
-      path: "/v1/predictions",
+      path: `/v1/models/${INTERACTIVE_MODEL}/predictions`,
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -151,6 +153,9 @@ async function runPrediction(token, imageUrl, pixelCoords, labels) {
     },
     inputBody
   );
+
+  console.log(`[segment] Replicate response status: ${res.status}`);
+  console.log(`[segment] Replicate response body: ${res.raw.substring(0, 500)}`);
 
   if (!res.body) {
     throw new Error(`Replicate antwortete mit Status ${res.status}: ${res.raw.substring(0, 300)}`);
@@ -169,7 +174,7 @@ async function runPrediction(token, imageUrl, pixelCoords, labels) {
     return pollPrediction(token, pred.id);
   }
 
-  throw new Error(`Unerwarteter Replicate-Status: ${pred.status || "unbekannt"}`);
+  throw new Error(`Unerwarteter Replicate-Status: ${pred.status || "unbekannt"}, Body: ${res.raw.substring(0, 200)}`);
 }
 
 async function pollPrediction(token, predictionId) {
@@ -331,7 +336,7 @@ module.exports = async function handler(req, res) {
 
   } catch (err) {
     const msg = String(err.message || "");
-    console.error("[segment] Fehler:", msg.substring(0, 400));
+    console.error("[segment] Fehler:", msg.substring(0, 800));
 
     if (err.status === 422) {
       return res.status(422).json({ error: err.message });

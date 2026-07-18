@@ -572,24 +572,160 @@ input[type="range"].fd-range {
 }
 
 /* ---------------------------------------------------------
-   CTA-Karte auf der Startseite
+   Feature-Section auf der Startseite (ersetzt fd-cta-card)
    --------------------------------------------------------- */
-.fd-cta-card {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--teal) 12%, var(--paper)),
-    color-mix(in srgb, var(--leaf) 8%, var(--paper)));
-  border: 1px solid color-mix(in srgb, var(--teal) 30%, var(--line));
-  border-radius: var(--radius);
-  padding: clamp(24px, 4vw, 40px);
+.fd-feature-section {
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--teal) 8%, var(--paper)) 0%,
+    color-mix(in srgb, var(--leaf) 6%, var(--paper)) 100%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: clamp(56px, 9vw, 96px) 0;
+  overflow: hidden;
+}
+.fd-feature-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 80px);
+  align-items: center;
+}
+.fd-feature-text { display: flex; flex-direction: column; gap: 1.25rem; }
+.fd-feature-text h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.2; }
+.fd-feature-text p { color: var(--ink-soft); font-size: 1rem; max-width: 44ch; line-height: 1.7; }
+
+.fd-feature-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: .6rem;
 }
-.fd-cta-card h3 {
-  font-size: 1.3rem;
+.fd-feature-bullets li {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
   color: var(--ink);
+  font-size: .95rem;
 }
-.fd-cta-card p { color: var(--ink-soft); font-size: .95rem; }
+.fd-feature-bullets li svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--teal);
+}
+.fd-feature-btn {
+  align-self: flex-start;
+  margin-top: .5rem;
+  font-size: 1rem;
+  padding: .8em 1.6em;
+  gap: .55em;
+}
+.fd-feature-btn svg { width: 18px; height: 18px; }
+
+/* Mockup */
+.fd-feature-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+}
+.fd-feature-hint {
+  font-size: .8rem;
+  color: var(--ink-muted, var(--ink-soft));
+  opacity: .7;
+}
+.fd-feature-mockup {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.12);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.fd-mockup-bar {
+  height: 28px;
+  background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+}
+.fd-mockup-bar span {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 18%, var(--paper));
+}
+.fd-mockup-body { padding: 16px; }
+
+/* Stylised room illustration */
+.fd-mockup-room {
+  aspect-ratio: 4/3;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e8e0d8;
+}
+.fd-mockup-wall {
+  position: absolute;
+}
+.fd-mockup-wall--back {
+  inset: 0 18% 28% 18%;
+  background: var(--fd-wall-color, #7C9E8A);
+  transition: background .6s ease;
+}
+.fd-mockup-wall--left {
+  left: 0; top: 0; bottom: 28%; width: 20%;
+  background: color-mix(in srgb, var(--fd-wall-color, #7C9E8A) 70%, #000);
+  transition: background .6s ease;
+}
+.fd-mockup-wall--floor {
+  left: 0; right: 0; bottom: 0; height: 28%;
+  background: #c4b8aa;
+}
+.fd-mockup-swatch-row {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.fd-sw {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--c);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+.fd-sw--active {
+  border-color: var(--ink);
+  transform: scale(1.2);
+}
+
+/* Auto-cycle the wall color demo */
+@keyframes fd-demo-cycle {
+  0%,18%   { --fd-wall-color: #7C9E8A; }
+  20%,38%  { --fd-wall-color: #C8A882; }
+  40%,58%  { --fd-wall-color: #4A6FA5; }
+  60%,78%  { --fd-wall-color: #B05252; }
+  80%,98%  { --fd-wall-color: #8B7355; }
+  100%     { --fd-wall-color: #7C9E8A; }
+}
+.fd-mockup-room {
+  animation: fd-demo-cycle 12s ease-in-out infinite;
+  @property --fd-wall-color { syntax: "<color>"; inherits: true; initial-value: #7C9E8A; }
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 760px) {
+  .fd-feature-wrap { grid-template-columns: 1fr; }
+  .fd-feature-visual { display: none; }
+  .fd-feature-text p { max-width: none; }
+  .fd-feature-btn { align-self: stretch; justify-content: center; }
+}
 
 /* ---------------------------------------------------------
    Responsive

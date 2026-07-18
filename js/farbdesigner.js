@@ -415,21 +415,22 @@
    * bleibt erhalten. Das Ergebnis wirkt natürlich und erhält Texturen.
    */
   function applyColorToCanvas(ctx, wall, isActive) {
-    if (!wall.maskData || !cachedOriginalPixels) return;
+    if (!wall.maskData) return;
     var w = state.preparedWidth, h = state.preparedHeight;
+    // Physische Pixel-Dimensionen für Retina/HiDPI-Displays (dpr=2 auf MacBooks)
+    // getImageData/putImageData arbeiten im physischen Pixel-Raum, ignorieren Transform.
+    var pw = w * dpr, ph = h * dpr;
     var intensity = state.intensity / 100;
+    var wallIdx = state.walls.indexOf(wall);
 
-    // Cache-Check: gleiche Farbe + Intensität → nicht neu berechnen
-    var cacheKey = wall.color + "|" + state.intensity + "|" + state.activeWall;
-    if (
-      colorizedCache &&
-      colorizedCache.key === cacheKey &&
-      colorizedCache.wallIndex === state.walls.indexOf(wall)
-    ) {
+    // Cache-Check: gleiche Farbe + Intensität + Wand-Index
+    var cacheKey = wall.color + "|" + state.intensity + "|" + wallIdx;
+    if (colorizedCache && colorizedCache.key === cacheKey && colorizedCache.wallIndex === wallIdx) {
       var tmpC = document.createElement("canvas");
-      tmpC.width = w; tmpC.height = h;
+      tmpC.width = pw; tmpC.height = ph;
       tmpC.getContext("2d").putImageData(colorizedCache.pixels, 0, 0);
-      ctx.drawImage(tmpC, 0, 0);
+      // drawImage mit aktiver scale(dpr,dpr)-Transform → füllt physisch pw×ph
+      ctx.drawImage(tmpC, 0, 0, w, h);
       return;
     }
 
@@ -437,37 +438,32 @@
     var targetHsl = rgbToHsl(targetRgb[0], targetRgb[1], targetRgb[2]);
     var tH = targetHsl[0], tS = targetHsl[1];
 
-    // Originalbild als Pixeldaten (auf Display-Auflösung)
-    var origData = cachedOriginalPixels.data;
-
-    // Maske skaliert auf Bildgröße
+    // Maske auf physische Auflösung skalieren (pw×ph)
     var maskCanvas = document.createElement("canvas");
-    maskCanvas.width = w; maskCanvas.height = h;
+    maskCanvas.width = pw; maskCanvas.height = ph;
     var maskCtx = maskCanvas.getContext("2d");
     var tmpMask = document.createElement("canvas");
     tmpMask.width = wall.maskData.width;
     tmpMask.height = wall.maskData.height;
     tmpMask.getContext("2d").putImageData(wall.maskData, 0, 0);
-    maskCtx.drawImage(tmpMask, 0, 0, w, h);
-    var maskPixels = maskCtx.getImageData(0, 0, w, h);
+    maskCtx.drawImage(tmpMask, 0, 0, pw, ph);
+    var maskPixels = maskCtx.getImageData(0, 0, pw, ph);
 
-    // Ausgabe-ImageData (von aktuellem Canvas-Zustand)
-    var outData = ctx.getImageData(0, 0, w, h);
+    // Physische Pixel aus dem Canvas lesen
+    var outData = ctx.getImageData(0, 0, pw, ph);
     var od = outData.data;
 
     for (var i = 0; i < od.length; i += 4) {
-      var maskAlpha = maskPixels.data[i] / 255; // Graustufenmaske: R-Kanal
+      var maskAlpha = maskPixels.data[i] / 255;
       if (maskAlpha < 0.04) continue;
 
       var r = od[i], g = od[i+1], b = od[i+2];
       var hsl = rgbToHsl(r, g, b);
-      var newL = hsl[2]; // Helligkeit beibehalten
+      var newL = hsl[2];
 
-      // Neue Sättigung: Ziel-Sättigung, aber gedämpft bei sehr dunklen/hellen Pixeln
       var adjustedS = tS * (0.6 + 0.4 * (1 - Math.abs(2 * newL - 1)));
       var newRgb = hslToRgb(tH, adjustedS, newL);
 
-      // Blend: maskAlpha * intensity steuert Stärke der Einfärbung
       var blend = maskAlpha * intensity;
       od[i]   = Math.round(r + (newRgb[0] - r) * blend);
       od[i+1] = Math.round(g + (newRgb[1] - g) * blend);
@@ -476,11 +472,10 @@
 
     ctx.putImageData(outData, 0, 0);
 
-    // Cache für diese Wandfläche
     colorizedCache = {
       key: cacheKey,
-      wallIndex: state.walls.indexOf(wall),
-      pixels: ctx.getImageData(0, 0, w, h),
+      wallIndex: wallIdx,
+      pixels: ctx.getImageData(0, 0, pw, ph),
     };
   }
 
